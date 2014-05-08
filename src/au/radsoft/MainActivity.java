@@ -9,20 +9,6 @@ import android.net.*;
 import java.io.*;
 import android.text.*;
 
-// TODO
-//
-// Show read only status
-// Show current line/column
-// Determine line ending and save with appropriate line ending
-// Determine encoding and save with appropriate encoding
-// Search in file
-// Syntax color
-// Color choice
-// Detect file change
-
-// Indent selection
-// Comment selection
-
 public class MainActivity extends Activity
 {
 	static final int ACTIVITY_OPEN_FILE = 1;
