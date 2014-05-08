@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item android:id="@+id/action_open_content"
+          android:icon="@drawable/file_options"
+          android:title="@string/action_open" />
+    <item android:id="@+id/action_revert"
+          android:icon="@drawable/file_options"
+          android:title="@string/action_revert" />
+    <item android:id="@+id/action_save"
+          android:icon="@android:drawable/ic_menu_save"
+          android:title="@string/action_save" />
+    <item android:id="@+id/action_save_as"
+          android:icon="@android:drawable/ic_menu_save"
+          android:title="@string/action_save_as" />
+    <item android:id="@+id/action_details"
+          android:icon="@android:drawable/ic_menu_info_details"
+          android:title="@string/action_details" />
+    <item android:id="@+id/action_share"
+          android:icon="@android:drawable/ic_menu_share"
+          android:title="@string/action_share"
+          android:actionProviderClass="android.widget.ShareActionProvider" />
+    <item android:id="@+id/action_open_with"
+          android:icon="@android:drawable/ic_menu_set_as"
+          android:title="@string/action_open_with"/>
+    <item android:id="@+id/action_undo"
+          android:icon="@drawable/icon_undo"
+          android:title="@string/action_undo"
+          android:showAsAction="always" />
+    <item android:id="@+id/action_redo"
+          android:icon="@drawable/icon_redo"
+          android:title="@string/action_redo"
+          android:showAsAction="ifRoom" />
+    <item android:id="@+id/action_wrap"
+          android:title="@string/action_wrap"
+          android:checkable="true" />
+</menu>
