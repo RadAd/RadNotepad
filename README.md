@@ -13,11 +13,10 @@ TODO
 ----
 - Show read only status
 - Show current line/column
-- Change line ending
 - Determine encoding and save with appropriate encoding
 - Search in file
 - Syntax color
-- Detect file change
+- Detect file changed when attempting to save
 
 TODO Editing Selection
 ----------------------

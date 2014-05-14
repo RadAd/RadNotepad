@@ -26,7 +26,7 @@ public class UndoRedoHelper {
     public UndoRedoHelper(TextView textView) {
         mTextView = textView;
         mTextView.addTextChangedListener(mChangeListener);
-        markSaved();
+        markSaved(true);
     }
 
     public void disconnect() {
@@ -41,8 +41,11 @@ public class UndoRedoHelper {
         mEditHistory.clear();
     }
 
-    public void markSaved() {
-        mSaved = mEditHistory.getCurrent();
+    public void markSaved(boolean saved) {
+        if (saved)
+            mSaved = mEditHistory.getCurrent();
+        else
+            mSaved = new EditItem(0, null, null);
     }
 
     public boolean isSaved() {

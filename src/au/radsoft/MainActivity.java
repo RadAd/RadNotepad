@@ -23,7 +23,7 @@ public class MainActivity extends Activity
     ShareActionProvider myShareActionProvider;
     boolean mWordWrap = false;
     String mLineEnding = LE_WINDOWS;
-    boolean mLineEndingChanged = false;
+    long mLastModified = -1;
 	
 	Uri mUri;
 	
@@ -59,9 +59,31 @@ public class MainActivity extends Activity
     }
 
     @Override
-    public void onStart()
+    public void onResume()
 	{
-		super.onStart();
+		super.onResume();
+        
+        if (mLastModified != getLastModified(mUri))
+        {
+            new AlertDialog.Builder(this)
+                .setTitle("Changed?")
+                .setMessage("The file has changed do you wish to revert to saved?")
+                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener()
+                    {
+                        public void onClick(DialogInterface arg0, int arg1)
+                        {
+                            mUndoRedoHelper.markSaved(false);
+                        }
+                    })
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
+                    {
+                        public void onClick(DialogInterface arg0, int arg1)
+                        {
+                            open();
+                        }
+                    })
+                .create().show();
+        }
     }
     
 	@Override
@@ -216,17 +238,17 @@ public class MainActivity extends Activity
 				
 		case R.id.action_le_windows:
             mLineEnding = LE_WINDOWS;
-            mLineEndingChanged = true;
+            mUndoRedoHelper.markSaved(false);
 			break;
 				
 		case R.id.action_le_unix:
             mLineEnding = LE_UNIX;
-            mLineEndingChanged = true;
+            mUndoRedoHelper.markSaved(false);
 			break;
 				
 		case R.id.action_le_mac:
             mLineEnding = LE_MAC;
-            mLineEndingChanged = true;
+            mUndoRedoHelper.markSaved(false);
 			break;
 		}
 		
@@ -241,7 +263,7 @@ public class MainActivity extends Activity
 		Uri uri = mUri;
         
         Enable(menu.findItem(R.id.action_revert), uri != null); // TODO When detect save changed -- && !mUndoRedoHelper.isSaved()
-        Enable(menu.findItem(R.id.action_save), uri != null && (!mUndoRedoHelper.isSaved() || mLineEndingChanged));
+        Enable(menu.findItem(R.id.action_save), uri != null && !mUndoRedoHelper.isSaved());
         //Enable(menu.findItem(R.id.action_save_as), uri != null);
         Enable(menu.findItem(R.id.action_details), uri != null);
         Enable(menu.findItem(R.id.action_share), uri != null);
@@ -308,6 +330,7 @@ public class MainActivity extends Activity
     
 	void open()
 	{
+        mLastModified = getLastModified(mUri);
         if (mUri != null)
             new LoadAsyncTask().execute(mUri);
 	}
@@ -423,9 +446,9 @@ public class MainActivity extends Activity
             if (result[0] != null)
                 mEdit.setText(result[0]);
             mLineEnding = mFileLineEnding;
-            mLineEndingChanged = false;
             mUndoRedoHelper.clearHistory();
-            mUndoRedoHelper.markSaved();
+            mUndoRedoHelper.markSaved(true);
+            mLastModified = getLastModified(mUri);
             super.onPostExecute(result);
         }
     }
@@ -485,8 +508,8 @@ public class MainActivity extends Activity
                 toast("Exception: " + mException);
             else
                 toast("Saved");
-            mUndoRedoHelper.markSaved();
-            mLineEndingChanged = false;
+            mUndoRedoHelper.markSaved(true);
+            mLastModified = getLastModified(mUri);
             super.onPostExecute(result);
         }
     }
@@ -498,9 +521,20 @@ public class MainActivity extends Activity
         return mtm.getMimeTypeFromExtension(extension);
     }
     
-    public static String ifNull(String input, String ifnull)
+    private static String ifNull(String input, String ifnull)
     {
         return input == null ? ifnull : input;
+    }
+    
+    private static long getLastModified(Uri uri)
+    {
+        if (uri != null && uri.getScheme().equals("file"))
+        {
+            File f = new File(uri.getPath());
+            return f.lastModified();
+        }
+        else
+            return -1;
     }
     
     private static int find(CharSequence cs, int o, char c)
