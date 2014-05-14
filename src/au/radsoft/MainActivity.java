@@ -23,6 +23,7 @@ public class MainActivity extends Activity
     ShareActionProvider myShareActionProvider;
     boolean mWordWrap = false;
     String mLineEnding = LE_WINDOWS;
+    boolean mLineEndingChanged = false;
 	
 	Uri mUri;
 	
@@ -135,6 +136,7 @@ public class MainActivity extends Activity
         super.onCreateOptionsMenu(menu);
         
         getMenuInflater().inflate(R.menu.menu, menu);
+        getMenuInflater().inflate(R.menu.line_ending, menu.addSubMenu(R.string.action_line_ending));
         
         MenuItem item = menu.findItem(R.id.action_share);
         myShareActionProvider = (ShareActionProvider) item.getActionProvider();
@@ -211,6 +213,21 @@ public class MainActivity extends Activity
             mWordWrap = !mWordWrap;
 			mEdit.setHorizontallyScrolling(!mWordWrap);
 			break;
+				
+		case R.id.action_le_windows:
+            mLineEnding = LE_WINDOWS;
+            mLineEndingChanged = true;
+			break;
+				
+		case R.id.action_le_unix:
+            mLineEnding = LE_UNIX;
+            mLineEndingChanged = true;
+			break;
+				
+		case R.id.action_le_mac:
+            mLineEnding = LE_MAC;
+            mLineEndingChanged = true;
+			break;
 		}
 		
 		return true;
@@ -224,7 +241,7 @@ public class MainActivity extends Activity
 		Uri uri = mUri;
         
         Enable(menu.findItem(R.id.action_revert), uri != null); // TODO When detect save changed -- && !mUndoRedoHelper.isSaved()
-        Enable(menu.findItem(R.id.action_save), uri != null && !mUndoRedoHelper.isSaved());
+        Enable(menu.findItem(R.id.action_save), uri != null && (!mUndoRedoHelper.isSaved() || mLineEndingChanged));
         //Enable(menu.findItem(R.id.action_save_as), uri != null);
         Enable(menu.findItem(R.id.action_details), uri != null);
         Enable(menu.findItem(R.id.action_share), uri != null);
@@ -232,6 +249,20 @@ public class MainActivity extends Activity
         Enable(menu.findItem(R.id.action_undo), mUndoRedoHelper.getCanUndo());
         Enable(menu.findItem(R.id.action_redo), mUndoRedoHelper.getCanRedo());
         menu.findItem(R.id.action_wrap).setChecked(mWordWrap);
+        switch (mLineEnding)
+        {
+        case LE_WINDOWS:
+            menu.findItem(R.id.action_le_windows).setChecked(true);
+            break;
+            
+        case LE_UNIX:
+            menu.findItem(R.id.action_le_unix).setChecked(true);
+            break;
+            
+        case LE_MAC:
+            menu.findItem(R.id.action_le_mac).setChecked(true);
+            break;
+        }
 		
 		return true;
     }
@@ -392,6 +423,7 @@ public class MainActivity extends Activity
             if (result[0] != null)
                 mEdit.setText(result[0]);
             mLineEnding = mFileLineEnding;
+            mLineEndingChanged = false;
             mUndoRedoHelper.clearHistory();
             mUndoRedoHelper.markSaved();
             super.onPostExecute(result);
@@ -454,6 +486,7 @@ public class MainActivity extends Activity
             else
                 toast("Saved");
             mUndoRedoHelper.markSaved();
+            mLineEndingChanged = false;
             super.onPostExecute(result);
         }
     }

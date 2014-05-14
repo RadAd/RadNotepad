@@ -15,4 +15,8 @@
     <string name="action_undo">Undo</string>
     <string name="action_redo">Redo</string>
     <string name="action_wrap">Word wrap</string>
+    <string name="action_le_windows">Windows (CRLF)</string>
+    <string name="action_le_unix">Unix (LF)</string>
+    <string name="action_le_mac">Macintosh (CR)</string>
+    <string name="action_line_ending">Line ending...</string>
 </resources>
