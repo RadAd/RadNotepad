@@ -13,11 +13,16 @@ public class MainActivity extends Activity
 {
 	static final int ACTIVITY_OPEN_FILE = 1;
     static final int ACTIVITY_SAVE_FILE = 2;
+    
+    static final String LE_WINDOWS = "\r\n";
+    static final String LE_UNIX = "\n";
+    static final String LE_MAC = "\r";
 	
 	EditText mEdit;
 	UndoRedoHelper mUndoRedoHelper;
     ShareActionProvider myShareActionProvider;
     boolean mWordWrap = false;
+    String mLineEnding = LE_WINDOWS;
 	
 	Uri mUri;
 	
@@ -316,38 +321,14 @@ public class MainActivity extends Activity
 		toast.show();
 	}
     
-	static String load(InputStream is)
-		throws java.io.IOException
-	{
-		try (BufferedReader br = new BufferedReader(new InputStreamReader(is)))
-        {
-            StringBuffer sb = new StringBuffer();
-
-            String line;
-            while ((line = br.readLine()) != null)
-            {
-                sb.append(line + "\n");
-            }
-
-            return sb.toString();
-        }
-	}
-	
-	static void save(OutputStream os, Editable e)
-		throws java.io.IOException
-	{
-		try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os)))
-		{
-			bw.write(e.toString());
-		}
-	}
-    
-    private class LoadAsyncTask extends ProgressDialogAsyncTask<Uri, String[]>
+    private class LoadAsyncTask extends ProgressDialogAsyncTask<Uri, CharSequence[]>
     {
+        private String mFileLineEnding = LE_WINDOWS;
+        
         @Override
-        protected String[] doInBackground(Uri... uris)
+        protected CharSequence[] doInBackground(Uri... uris)
         {
-            String[] result = new String[uris.length];
+            CharSequence[] result = new CharSequence[uris.length];
 
             for (int i = 0; i < uris.length; i++)
             {
@@ -355,11 +336,38 @@ public class MainActivity extends Activity
                 try
                 {
                     InputStream is = getContentResolver().openInputStream(uris[i]);
-                    result[i] = load(is);
+                    try (BufferedReader br = new BufferedReader(new InputStreamReader(is)))
+                    {
+                        StringBuffer sb = new StringBuffer();
+                        
+                        int c;
+                        while ((c = br.read()) != -1)
+                        {
+                            if (c == '\r')
+                            {
+                                mFileLineEnding = LE_MAC;
+                                br.mark(1);
+                                int nc = br.read();
+                                if (nc != '\n')
+                                    br.reset();
+                                else
+                                    mFileLineEnding = LE_WINDOWS;
+                                c = '\n';
+                            }
+                            else if (c == '\n')
+                            {
+                                mFileLineEnding = LE_UNIX;
+                            }
+                            sb.append((char) c);
+                        }
+
+                        result[i] = sb;
+                    }
                 }
                 catch (Exception e)
                 {
-                    toast("Exception: " + e);
+                    mException = e;
+                    e.printStackTrace();
                 }
                 publishProgress((int) ((i + 1.5f)*100f/uris.length));
             }
@@ -377,10 +385,13 @@ public class MainActivity extends Activity
         }
         
         @Override
-        protected void onPostExecute(String[] result)
+        protected void onPostExecute(CharSequence[] result)
         {
+            if (mException != null)
+                toast("Exception: " + mException);
             if (result[0] != null)
                 mEdit.setText(result[0]);
+            mLineEnding = mFileLineEnding;
             mUndoRedoHelper.clearHistory();
             mUndoRedoHelper.markSaved();
             super.onPostExecute(result);
@@ -398,11 +409,27 @@ public class MainActivity extends Activity
                 try
                 {
                     OutputStream os = getContentResolver().openOutputStream(uris[i]);
-                    save(os, mEdit.getText());
+                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os)))
+                    {
+                        CharSequence cs = mEdit.getText();
+                        
+                        int begin = 0;
+                        int end = 0;
+                        while ((end = find(cs, begin, '\n')) != -1)
+                        {
+                            CharSequence sub = cs.subSequence(begin, end);
+                            bw.append(sub);
+                            bw.write(mLineEnding);
+                            begin = end + 1;
+                        }
+                        CharSequence sub = cs.subSequence(begin, cs.length());
+                        bw.append(sub);
+                    }
                 }
                 catch (Exception e)
                 {
-                    toast("Exception: " + e);
+                    mException = e;
+                    e.printStackTrace();
                 }
                 publishProgress((int) ((i + 1.5f)*100f/uris.length));
             }
@@ -422,13 +449,16 @@ public class MainActivity extends Activity
         @Override
         protected void onPostExecute(Void result)
         {
+            if (mException != null)
+                toast("Exception: " + mException);
+            else
+                toast("Saved");
             mUndoRedoHelper.markSaved();
-            toast("Saved");
             super.onPostExecute(result);
         }
     }
     
-    static String getMimeType(Uri uri)
+    private static String getMimeType(Uri uri)
     {
         android.webkit.MimeTypeMap mtm = android.webkit.MimeTypeMap.getSingleton();
         String extension = mtm.getFileExtensionFromUrl(uri.toString());
@@ -438,5 +468,16 @@ public class MainActivity extends Activity
     public static String ifNull(String input, String ifnull)
     {
         return input == null ? ifnull : input;
+    }
+    
+    private static int find(CharSequence cs, int o, char c)
+    {
+        while (o < cs.length())
+        {
+            if (cs.charAt(o) == c)
+                return o;
+            ++o;
+        }
+        return -1;
     }
 }

@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 abstract class ProgressDialogAsyncTask<Params, Result> extends AsyncTask<Params, Integer, Result>
 {
     protected ProgressDialog mDlg;
+    protected Exception mException;
     
     @Override
     protected void onPreExecute()
