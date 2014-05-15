@@ -155,7 +155,7 @@ public class MainActivity extends Activity
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        getMenuInflater().inflate(R.menu.menu, menu);
+        getMenuInflater().inflate(R.menu.options, menu);
         getMenuInflater().inflate(R.menu.line_ending, menu.addSubMenu(R.string.action_line_ending));
         
         myShareActionProvider = (ShareActionProvider) menu.findItem(R.id.action_share).getActionProvider();

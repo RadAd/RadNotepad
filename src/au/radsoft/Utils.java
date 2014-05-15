@@ -44,8 +44,8 @@ class Utils
     
     static int find(CharSequence cs, int o, String search)
     {
-		if (search.length() == 0)
-			return -1;
+        if (search.length() == 0)
+            return -1;
         while ((o = find(cs, o, search.charAt(0))) != -1)
         {
             if ((o + search.length()) > cs.length())
