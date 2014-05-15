@@ -9,6 +9,7 @@ Known Issues
 - tab key changes focus instead of been captured by EditText
 - currently only supports utf8 encoding
 - search selection is cleared when closing search window
+- search is case-sensitive
 
 TODO
 ----
