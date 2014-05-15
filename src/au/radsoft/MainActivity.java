@@ -11,30 +11,30 @@ import android.text.*;
 
 public class MainActivity extends Activity
 {
-	static final int ACTIVITY_OPEN_FILE = 1;
+    static final int ACTIVITY_OPEN_FILE = 1;
     static final int ACTIVITY_SAVE_FILE = 2;
     
     static final String LE_WINDOWS = "\r\n";
     static final String LE_UNIX = "\n";
     static final String LE_MAC = "\r";
-	
-	EditText mEdit;
-	UndoRedoHelper mUndoRedoHelper;
+    
+    EditText mEdit;
+    UndoRedoHelper mUndoRedoHelper;
     ShareActionProvider myShareActionProvider;
     boolean mWordWrap = false;
     String mLineEnding = LE_WINDOWS;
     long mLastModified = -1;
-	
-	Uri mUri;
-	
+    
+    Uri mUri;
+    
     @Override
     public void onCreate(Bundle savedInstanceState)
-	{
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-		mEdit = (EditText) findViewById(R.id.edit);
-		mEdit.setHorizontallyScrolling(!mWordWrap); // bug when set in xml
-		mUndoRedoHelper = new UndoRedoHelper(mEdit);
+        mEdit = (EditText) findViewById(R.id.edit);
+        mEdit.setHorizontallyScrolling(!mWordWrap); // bug when set in xml
+        mUndoRedoHelper = new UndoRedoHelper(mEdit);
         mEdit.addTextChangedListener(new TextWatcher()
             {
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -60,10 +60,10 @@ public class MainActivity extends Activity
 
     @Override
     public void onResume()
-	{
-		super.onResume();
+    {
+        super.onResume();
         
-        if (mLastModified != getLastModified(mUri))
+        if (mLastModified != Utils.getLastModified(mUri))
         {
             new AlertDialog.Builder(this)
                 .setTitle("Changed?")
@@ -86,17 +86,17 @@ public class MainActivity extends Activity
         }
     }
     
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
-		super.onActivityResult(requestCode, resultCode, data);
-		
-		switch (requestCode)
-		{
-		case ACTIVITY_OPEN_FILE:
-			if (resultCode == RESULT_OK)
-			{
-				Uri uri = data.getData();
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        switch (requestCode)
+        {
+        case ACTIVITY_OPEN_FILE:
+            if (resultCode == RESULT_OK)
+            {
+                Uri uri = data.getData();
                 if (uri == null)
                     toast("Invalid file");
                 else
@@ -104,13 +104,13 @@ public class MainActivity extends Activity
                     setUri(uri);
                     open();
                 }
-			}
-			break;
+            }
+            break;
             
-		case ACTIVITY_SAVE_FILE:
-			if (resultCode == RESULT_OK)
-			{
-				Uri uri = data.getData();
+        case ACTIVITY_SAVE_FILE:
+            if (resultCode == RESULT_OK)
+            {
+                Uri uri = data.getData();
                 if (uri == null)
                     toast("Invalid file");
                 else
@@ -118,11 +118,11 @@ public class MainActivity extends Activity
                     setUri(uri);
                     save();
                 }
-			}
-			break;
-		}
-	}
-	
+            }
+            break;
+        }
+    }
+    
     @Override
     public void onBackPressed()
     {
@@ -155,16 +155,18 @@ public class MainActivity extends Activity
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        super.onCreateOptionsMenu(menu);
-        
         getMenuInflater().inflate(R.menu.menu, menu);
         getMenuInflater().inflate(R.menu.line_ending, menu.addSubMenu(R.string.action_line_ending));
         
-        MenuItem item = menu.findItem(R.id.action_share);
-        myShareActionProvider = (ShareActionProvider) item.getActionProvider();
+        myShareActionProvider = (ShareActionProvider) menu.findItem(R.id.action_share).getActionProvider();
         updateShareActionProvider();
         
-		return true;
+        final MenuItem menuSearch = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) menuSearch.getActionView();
+        searchView.setQueryHint("Search in file");
+        SearchViewHelper.attach(searchView, mEdit);
+        
+        return super.onCreateOptionsMenu(menu);
     }
     
     @Override
@@ -175,20 +177,20 @@ public class MainActivity extends Activity
         case R.id.action_open_content:
             openChooser();
             break;
-			
+
         case R.id.action_revert:
             open();
             break;
-			
-		case R.id.action_save:
-			save();
-			break;
+
+        case R.id.action_save:
+            save();
+            break;
             
-		case R.id.action_save_as:
-			saveChooser();
-			break;
+        case R.id.action_save_as:
+            saveChooser();
+            break;
             
-		case R.id.action_details:
+        case R.id.action_details:
             if (mUri != null)
             {
                 Uri uri = mUri;
@@ -197,7 +199,7 @@ public class MainActivity extends Activity
                 StringBuilder msg = new StringBuilder();
                 msg.append("Location: " + uri.toString());
                 msg.append(nl);
-                msg.append("MIME: " + ifNull(getMimeType(uri), ""));
+                msg.append("MIME: " + Utils.ifNull(Utils.getMimeType(uri), ""));
                 
                 if (uri.getScheme().equals("file"))
                 {
@@ -214,53 +216,51 @@ public class MainActivity extends Activity
                     .setMessage(msg)
                     .create().show();
             }
-			break;
+            break;
             
         case R.id.action_open_with:
             if (mUri != null)
                 startActivity(new Intent(Intent.ACTION_VIEW, mUri));
             break;
 
-		case R.id.action_undo:
-			mUndoRedoHelper.undo();
+        case R.id.action_undo:
+            mUndoRedoHelper.undo();
             invalidateOptionsMenu();
-			break;
-				
-		case R.id.action_redo:
-			mUndoRedoHelper.redo();
+            break;
+                
+        case R.id.action_redo:
+            mUndoRedoHelper.redo();
             invalidateOptionsMenu();
-			break;
-				
-		case R.id.action_wrap:
+            break;
+                
+        case R.id.action_wrap:
             mWordWrap = !mWordWrap;
-			mEdit.setHorizontallyScrolling(!mWordWrap);
-			break;
-				
-		case R.id.action_le_windows:
+            mEdit.setHorizontallyScrolling(!mWordWrap);
+            break;
+                
+        case R.id.action_le_windows:
             mLineEnding = LE_WINDOWS;
             mUndoRedoHelper.markSaved(false);
-			break;
-				
-		case R.id.action_le_unix:
+            break;
+                
+        case R.id.action_le_unix:
             mLineEnding = LE_UNIX;
             mUndoRedoHelper.markSaved(false);
-			break;
-				
-		case R.id.action_le_mac:
+            break;
+                
+        case R.id.action_le_mac:
             mLineEnding = LE_MAC;
             mUndoRedoHelper.markSaved(false);
-			break;
-		}
-		
-		return true;
+            break;
+        }
+        
+        return true;
     }
     
     @Override
     public boolean onPrepareOptionsMenu(Menu menu)
     {
-        super.onPrepareOptionsMenu(menu);
-		
-		Uri uri = mUri;
+        Uri uri = mUri;
         
         Enable(menu.findItem(R.id.action_revert), uri != null); // TODO When detect save changed -- && !mUndoRedoHelper.isSaved()
         Enable(menu.findItem(R.id.action_save), uri != null && !mUndoRedoHelper.isSaved());
@@ -285,8 +285,8 @@ public class MainActivity extends Activity
             menu.findItem(R.id.action_le_mac).setChecked(true);
             break;
         }
-		
-		return true;
+        
+        return super.onPrepareOptionsMenu(menu);
     }
     
     static void Enable(MenuItem mi, boolean enable)
@@ -307,7 +307,7 @@ public class MainActivity extends Activity
             else
             {
                 Intent intent = new Intent(Intent.ACTION_SEND);
-                intent.setType(ifNull(getMimeType(uri), "*/*"));
+                intent.setType(Utils.ifNull(Utils.getMimeType(uri), "*/*"));
                 intent.putExtra(Intent.EXTRA_STREAM, uri);
                 myShareActionProvider.setShareIntent(intent);
             }
@@ -316,7 +316,7 @@ public class MainActivity extends Activity
     
     void setUri(Uri uri)
     {
-		mUri = uri;
+        mUri = uri;
 
         if (uri != null)
             getActionBar().setSubtitle(uri.getLastPathSegment());
@@ -328,52 +328,52 @@ public class MainActivity extends Activity
         updateShareActionProvider();
     }
     
-	void open()
-	{
-        mLastModified = getLastModified(mUri);
+    void open()
+    {
+        mLastModified = Utils.getLastModified(mUri);
         if (mUri != null)
             new LoadAsyncTask().execute(mUri);
-	}
-		
-	void save()
-	{
+    }
+        
+    void save()
+    {
         if (mUri != null)
             new SaveAsyncTask().execute(mUri);
         else
             saveChooser();
-	}
+    }
 
-	void openChooser()
-	{
-		Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
-		chooseFile.addCategory(Intent.CATEGORY_OPENABLE);
-		chooseFile.setType("text/*");
-		Intent intent = Intent.createChooser(chooseFile, getString(R.string.open_prompt));
-		startActivityForResult(intent, ACTIVITY_OPEN_FILE);
-	}
-	
-	void saveChooser()
-	{
-		Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
-		chooseFile.addCategory(Intent.CATEGORY_OPENABLE);
-		chooseFile.setType("text/*");
-		Intent intent = Intent.createChooser(chooseFile, getString(R.string.save_as_prompt));
-		startActivityForResult(intent, ACTIVITY_SAVE_FILE);
-	}
-	
-	void openSaf()
-	{
-		Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-		intent.addCategory(Intent.CATEGORY_OPENABLE);
-		intent.setType("text/*");
-		startActivityForResult(intent, ACTIVITY_OPEN_FILE);
-	}
-	
-	void toast(String msg)
-	{
-		Toast toast = Toast.makeText(this, msg,Toast.LENGTH_LONG);
-		toast.show();
-	}
+    void openChooser()
+    {
+        Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
+        chooseFile.addCategory(Intent.CATEGORY_OPENABLE);
+        chooseFile.setType("text/*");
+        Intent intent = Intent.createChooser(chooseFile, getString(R.string.open_prompt));
+        startActivityForResult(intent, ACTIVITY_OPEN_FILE);
+    }
+    
+    void saveChooser()
+    {
+        Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
+        chooseFile.addCategory(Intent.CATEGORY_OPENABLE);
+        chooseFile.setType("text/*");
+        Intent intent = Intent.createChooser(chooseFile, getString(R.string.save_as_prompt));
+        startActivityForResult(intent, ACTIVITY_SAVE_FILE);
+    }
+    
+    void openSaf()
+    {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/*");
+        startActivityForResult(intent, ACTIVITY_OPEN_FILE);
+    }
+    
+    void toast(String msg)
+    {
+        Toast toast = Toast.makeText(this, msg,Toast.LENGTH_LONG);
+        toast.show();
+    }
     
     private class LoadAsyncTask extends ProgressDialogAsyncTask<Uri, CharSequence[]>
     {
@@ -448,7 +448,7 @@ public class MainActivity extends Activity
             mLineEnding = mFileLineEnding;
             mUndoRedoHelper.clearHistory();
             mUndoRedoHelper.markSaved(true);
-            mLastModified = getLastModified(mUri);
+            mLastModified = Utils.getLastModified(mUri);
             super.onPostExecute(result);
         }
     }
@@ -470,7 +470,7 @@ public class MainActivity extends Activity
                         
                         int begin = 0;
                         int end = 0;
-                        while ((end = find(cs, begin, '\n')) != -1)
+                        while ((end = Utils.find(cs, begin, '\n')) != -1)
                         {
                             CharSequence sub = cs.subSequence(begin, end);
                             bw.append(sub);
@@ -509,42 +509,8 @@ public class MainActivity extends Activity
             else
                 toast("Saved");
             mUndoRedoHelper.markSaved(true);
-            mLastModified = getLastModified(mUri);
+            mLastModified = Utils.getLastModified(mUri);
             super.onPostExecute(result);
         }
-    }
-    
-    private static String getMimeType(Uri uri)
-    {
-        android.webkit.MimeTypeMap mtm = android.webkit.MimeTypeMap.getSingleton();
-        String extension = mtm.getFileExtensionFromUrl(uri.toString());
-        return mtm.getMimeTypeFromExtension(extension);
-    }
-    
-    private static String ifNull(String input, String ifnull)
-    {
-        return input == null ? ifnull : input;
-    }
-    
-    private static long getLastModified(Uri uri)
-    {
-        if (uri != null && uri.getScheme().equals("file"))
-        {
-            File f = new File(uri.getPath());
-            return f.lastModified();
-        }
-        else
-            return -1;
-    }
-    
-    private static int find(CharSequence cs, int o, char c)
-    {
-        while (o < cs.length())
-        {
-            if (cs.charAt(o) == c)
-                return o;
-            ++o;
-        }
-        return -1;
     }
 }
