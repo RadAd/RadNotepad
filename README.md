@@ -14,7 +14,6 @@ Known Issues
 TODO
 ----
 - Show read only status
-- Show current line/column
 - Determine encoding and save with appropriate encoding
 - Add a search history or at least start with last search
 - Syntax color

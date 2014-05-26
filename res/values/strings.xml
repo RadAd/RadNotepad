@@ -19,5 +19,8 @@
     <string name="action_le_windows">Windows (CRLF)</string>
     <string name="action_le_unix">Unix (LF)</string>
     <string name="action_le_mac">Macintosh (CR)</string>
+    <string name="status_le_windows_short">CRLF</string>
+    <string name="status_le_unix_short">LF</string>
+    <string name="status_le_mac_short">CR</string>
     <string name="action_line_ending">Line ending...</string>
 </resources>

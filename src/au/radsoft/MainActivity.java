@@ -9,7 +9,7 @@ import android.net.*;
 import java.io.*;
 import android.text.*;
 
-public class MainActivity extends Activity
+public class MainActivity extends Activity implements EditText.SelectionChangedListener
 {
     static final int ACTIVITY_OPEN_FILE = 1;
     static final int ACTIVITY_SAVE_FILE = 2;
@@ -19,6 +19,8 @@ public class MainActivity extends Activity
     static final String LE_MAC = "\r";
     
     EditText mEdit;
+    TextView mStatusLineEnding;
+    TextView mStatusCursor;
     UndoRedoHelper mUndoRedoHelper;
     ShareActionProvider myShareActionProvider;
     boolean mWordWrap = false;
@@ -32,6 +34,7 @@ public class MainActivity extends Activity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        
         mEdit = (EditText) findViewById(R.id.edit);
         mEdit.setHorizontallyScrolling(!mWordWrap); // bug when set in xml
         mUndoRedoHelper = new UndoRedoHelper(mEdit);
@@ -45,6 +48,12 @@ public class MainActivity extends Activity
                 }
             }
         );
+        mEdit.addSelectionChangedListener(this);
+        
+        mStatusLineEnding = (TextView) findViewById(R.id.line_ending);
+        mStatusCursor = (TextView) findViewById(R.id.cursor);
+        
+        onSelectionChanged(mEdit.getSelectionStart(), mEdit.getSelectionEnd());
         
         Intent intent = getIntent();
         if (intent != null)
@@ -62,6 +71,8 @@ public class MainActivity extends Activity
     public void onResume()
     {
         super.onResume();
+        
+        updateStatusLineEnding();
         
         if (mLastModified != Utils.getLastModified(mUri))
         {
@@ -126,30 +137,12 @@ public class MainActivity extends Activity
     @Override
     public void onBackPressed()
     {
-        if (!mUndoRedoHelper.isSaved())
-        {
-            new AlertDialog.Builder(this)
-                .setTitle("Save?")
-                .setMessage("Do you wish to save before exiting?")
-                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener()
-                    {
-                        public void onClick(DialogInterface arg0, int arg1)
-                        {
-                            MainActivity.super.onBackPressed();
-                        }
-                    })
-                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
-                    {
-                        public void onClick(DialogInterface arg0, int arg1)
-                        {
-                            save();
-                            MainActivity.super.onBackPressed();
-                        }
-                    })
-                .create().show();
-        }
-        else
-            super.onBackPressed();
+        checkSave("Do you wish to save before exiting?", new Runnable() {
+                public void run()
+                {
+                    MainActivity.super.onBackPressed();
+                }
+            });
     }
     
     @Override
@@ -175,7 +168,12 @@ public class MainActivity extends Activity
         switch (item.getItemId())
         {
         case R.id.action_open_content:
-            openChooser();
+            checkSave("Do you wish to save before opening?", new Runnable() {
+                    public void run()
+                    {
+                        openChooser();
+                    }
+                });
             break;
 
         case R.id.action_revert:
@@ -240,16 +238,19 @@ public class MainActivity extends Activity
                 
         case R.id.action_le_windows:
             mLineEnding = LE_WINDOWS;
+            updateStatusLineEnding();
             mUndoRedoHelper.markSaved(false);
             break;
                 
         case R.id.action_le_unix:
             mLineEnding = LE_UNIX;
+            updateStatusLineEnding();
             mUndoRedoHelper.markSaved(false);
             break;
                 
         case R.id.action_le_mac:
             mLineEnding = LE_MAC;
+            updateStatusLineEnding();
             mUndoRedoHelper.markSaved(false);
             break;
         }
@@ -262,7 +263,7 @@ public class MainActivity extends Activity
     {
         Uri uri = mUri;
         
-        Enable(menu.findItem(R.id.action_revert), uri != null); // TODO When detect save changed -- && !mUndoRedoHelper.isSaved()
+        Enable(menu.findItem(R.id.action_revert), uri != null && (!mUndoRedoHelper.isSaved() || (mLastModified != Utils.getLastModified(mUri))));
         Enable(menu.findItem(R.id.action_save), uri != null && !mUndoRedoHelper.isSaved());
         //Enable(menu.findItem(R.id.action_save_as), uri != null);
         Enable(menu.findItem(R.id.action_details), uri != null);
@@ -287,6 +288,79 @@ public class MainActivity extends Activity
         }
         
         return super.onPrepareOptionsMenu(menu);
+    }
+    
+    @Override //SelectionChangedListener
+    public void onSelectionChanged(int selStart, int selEnd)
+    {
+        Layout layout = mEdit.getLayout();
+        if (layout != null)
+        {
+            int line = layout.getLineForOffset(selStart);
+            int col = selStart - layout.getLineStart(line);
+            if (selStart == selEnd)
+                mStatusCursor.setText(String.format("%d:%d", line + 1, col + 1));
+            else
+                mStatusCursor.setText(String.format("%d:%d (%d)", line + 1, col + 1, selEnd - selStart));
+        }
+        else
+        {
+            int line = 0;
+            int col = selStart;
+            if (selStart == selEnd)
+                mStatusCursor.setText(String.format("%d:%d", line + 1, col + 1));
+            else
+                mStatusCursor.setText(String.format("%d:%d (%d)", line + 1, col + 1, selEnd - selStart));
+        }
+    }
+    
+    void checkSave(String msg, final Runnable cb)
+    {
+        if (!mUndoRedoHelper.isSaved())
+        {
+            new AlertDialog.Builder(this)
+                .setTitle("Save?")
+                .setMessage(msg)
+                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener()
+                    {
+                        public void onClick(DialogInterface arg0, int arg1)
+                        {
+                            cb.run();
+                        }
+                    })
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
+                    {
+                        public void onClick(DialogInterface arg0, int arg1)
+                        {
+                            save();
+                            cb.run();
+                        }
+                    })
+                .create().show();
+        }
+        else
+            cb.run();
+    }
+    
+    void updateStatusLineEnding()
+    {
+        int le = -1;
+        switch (mLineEnding)
+        {
+        case LE_WINDOWS:
+            le = R.string.status_le_windows_short;
+            break;
+            
+        case LE_UNIX:
+            le = R.string.status_le_unix_short;
+            break;
+            
+        case LE_MAC:
+            le = R.string.status_le_mac_short;
+            break;
+        }
+
+        mStatusLineEnding.setText(getString(le));
     }
     
     static void Enable(MenuItem mi, boolean enable)
@@ -446,6 +520,7 @@ public class MainActivity extends Activity
             if (result[0] != null)
                 mEdit.setText(result[0]);
             mLineEnding = mFileLineEnding;
+            updateStatusLineEnding();
             mUndoRedoHelper.clearHistory();
             mUndoRedoHelper.markSaved(true);
             mLastModified = Utils.getLastModified(mUri);

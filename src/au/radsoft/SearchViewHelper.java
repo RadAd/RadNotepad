@@ -13,10 +13,11 @@ class SearchViewHelper implements SearchView.OnQueryTextListener
     private EditText mEditText;
     private Object mSpan;
     
-    static void attach(SearchView searchView, EditText editText)
+    static SearchViewHelper attach(SearchView searchView, EditText editText)
     {
         SearchViewHelper searchViewHelper = new SearchViewHelper(editText);
         searchView.setOnQueryTextListener(searchViewHelper);
+        return searchViewHelper;
     }
     
     SearchViewHelper(EditText editText)
