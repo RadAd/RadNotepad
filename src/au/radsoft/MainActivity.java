@@ -9,6 +9,8 @@ import android.net.*;
 import java.io.*;
 import android.text.*;
 
+import static au.radsoft.utils.CharSequenceUtils.*;
+
 public class MainActivity extends Activity implements EditText.SelectionChangedListener
 {
     static final int ACTIVITY_OPEN_FILE = 1;
@@ -19,12 +21,14 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     static final String LE_MAC = "\r";
     
     EditText mEdit;
+    TextView mStatusScheme;
     TextView mStatusLineEnding;
     TextView mStatusCursor;
     UndoRedoHelper mUndoRedoHelper;
     ShareActionProvider myShareActionProvider;
     boolean mWordWrap = false;
     String mLineEnding = LE_WINDOWS;
+    SyntaxHighlighter.Scheme mScheme = null;
     long mLastModified = -1;
     
     Uri mUri;
@@ -50,6 +54,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         );
         mEdit.addSelectionChangedListener(this);
         
+        mStatusScheme = (TextView) findViewById(R.id.scheme);
         mStatusLineEnding = (TextView) findViewById(R.id.line_ending);
         mStatusCursor = (TextView) findViewById(R.id.cursor);
         
@@ -73,6 +78,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         super.onResume();
         
         updateStatusLineEnding();
+        updateStatusScheme();
         
         if (mLastModified != Utils.getLastModified(mUri))
         {
@@ -236,6 +242,10 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             mEdit.setHorizontallyScrolling(!mWordWrap);
             break;
                 
+        case R.id.syntax_highlight:
+            highlightSyntax();
+            break;
+            
         case R.id.action_le_windows:
             mLineEnding = LE_WINDOWS;
             updateStatusLineEnding();
@@ -363,6 +373,14 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         mStatusLineEnding.setText(getString(le));
     }
     
+    void updateStatusScheme()
+    {
+        if (mScheme != null)
+            mStatusScheme.setText(mScheme.name);
+        else
+            mStatusScheme.setText("");
+    }
+    
     static void Enable(MenuItem mi, boolean enable)
     {
         mi.setEnabled(enable);
@@ -443,6 +461,15 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         startActivityForResult(intent, ACTIVITY_OPEN_FILE);
     }
     
+    void highlightSyntax()
+    {
+        if (mScheme != null)
+        {
+            SyntaxHighlighter sh = new SyntaxHighlighter(mEdit.getText(), mScheme);
+            sh.highlight();
+        }
+    }
+    
     void toast(String msg)
     {
         Toast toast = Toast.makeText(this, msg,Toast.LENGTH_LONG);
@@ -520,10 +547,13 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             if (result[0] != null)
                 mEdit.setText(result[0]);
             mLineEnding = mFileLineEnding;
+            mScheme = SyntaxHighlighter.getScheme(mUri);
             updateStatusLineEnding();
+            updateStatusScheme();
             mUndoRedoHelper.clearHistory();
             mUndoRedoHelper.markSaved(true);
             mLastModified = Utils.getLastModified(mUri);
+            highlightSyntax();
             super.onPostExecute(result);
         }
     }
@@ -545,7 +575,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                         
                         int begin = 0;
                         int end = 0;
-                        while ((end = Utils.find(cs, begin, '\n')) != -1)
+                        while ((end = find(cs, begin, '\n')) != -1)
                         {
                             CharSequence sub = cs.subSequence(begin, end);
                             bw.append(sub);

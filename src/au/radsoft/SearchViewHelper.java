@@ -4,7 +4,9 @@ import android.widget.EditText;
 import android.widget.SearchView;
 import android.widget.Toast;
 
-import  android.util.Log;
+import android.util.Log;
+
+import static au.radsoft.utils.CharSequenceUtils.*;
 
 class SearchViewHelper implements SearchView.OnQueryTextListener
 {
@@ -54,9 +56,9 @@ class SearchViewHelper implements SearchView.OnQueryTextListener
     
     private boolean findHighlight(String query, int o)
     {
-        int i = Utils.find(mEditText.getText(), o, query);
+        int i = find(mEditText.getText(), o, query);
         if (i == -1 && o != 0)
-            i = Utils.find(mEditText.getText(), 0, query);
+            i = find(mEditText.getText(), 0, query);
         if (i != -1)
         {
             mEditText.setSelection(i, i + query.length());

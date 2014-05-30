@@ -38,4 +38,6 @@
     <item android:id="@+id/action_wrap"
           android:title="@string/action_wrap"
           android:checkable="true" />
+    <item android:id="@+id/syntax_highlight"
+          android:title="Syntax Highlight" />
 </menu>
