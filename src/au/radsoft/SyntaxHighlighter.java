@@ -121,6 +121,7 @@ class SyntaxHighlighter
             
             Object span = null;
             int spanstart = t.getStart() + start;
+            int spanend = t.getEnd() + start;
             switch (tt)
             {
             case UNKNOWN:
@@ -165,7 +166,16 @@ class SyntaxHighlighter
                         op = "]";
                         color = 0xFFFFFF00;
                     }
-                    findSpecial(t, op);
+                    spanend = t.getEnd() + start;
+                    if (findSpecial(t, op))
+                    {
+                        spanend = t.getEnd() + start - 1;
+                        cont = false;
+                    }
+                    else
+                    {
+                        spanend = t.getEnd() + start;
+                    }
                     span = new android.text.style.ForegroundColorSpan(color);
                 }
                 break;
@@ -175,27 +185,30 @@ class SyntaxHighlighter
                 break;
             }
             if (span != null)
-                mEditable.setSpan(span, spanstart, t.getEnd() + start, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                mEditable.setSpan(span, spanstart, spanend, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             lastToken = t.get();
         }
     }
     
-    private void findSpecial(Tokenizer t, CharSequence end)
+    private boolean findSpecial(Tokenizer t, CharSequence sp)
     {
         boolean cont = true;
+        boolean endtoken = false;
         while (cont)
         {
             Tokenizer.Type tt = t.getNextToken();
             switch (tt)
             {
             case SPECIAL:
-                cont = CharSequenceUtils.compare(t.get(), end) != 0;
+                cont = CharSequenceUtils.compare(t.get(), sp) != 0;
                 break;
                 
             case END:
+                endtoken = true;
                 cont = false;
                 break;
             }
         }
+        return endtoken;
     }
 }
