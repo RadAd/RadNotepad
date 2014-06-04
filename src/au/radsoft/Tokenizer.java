@@ -6,14 +6,17 @@ public class Tokenizer
     private int i = 0;
     private int j = 0;
     
-    String mTokenStart = "_";
+    String mTokenStart = "_";   // An array of individual chars
     String mLineComment = "//";
+    String[] mSpecials = { "\"", "'", "/*", "*/" };
     
-    public enum Type { TOKEN, NUMBER, STRING, LINE_COMMENT, UNKNOWN, END };
+    public enum Type { TOKEN, NUMBER, LINE_COMMENT, SPECIAL, UNKNOWN, END };
     
     public Tokenizer(CharSequence s)
     {
         this.s = s;
+        if (mSpecials != null)
+            java.util.Arrays.sort(mSpecials);
     }
     
     public Type getNextToken()
@@ -25,22 +28,11 @@ public class Tokenizer
             c = charAt(++i);
         } while (Character.isWhitespace(c));
         
+        String op = null;
         if (i >= s.length())
         {
             j = i + 1;
             return Type.END;
-        }
-        else if (c == '\'' || c == '"')
-        {
-            char b = c;
-            j = i;
-            do
-            {
-                c = charAt(++j);
-            } while (c != b && c != '\n' && c != 0);
-            if (c == b)
-                ++j;
-            return Type.STRING;
         }
         else if (mTokenStart.indexOf(c) >= 0 || Character.isAlphabetic(c))
         {
@@ -68,7 +60,16 @@ public class Tokenizer
             }
             return Type.NUMBER;
         }
-        else if(is(i, mLineComment))
+        else if (is(i, "0x"))
+        {
+            j = i + 1;
+            do
+            {
+                c = charAt(++j);
+            } while (Character.isDigit(c) || (c > 'a' && c <= 'f') || (c > 'A' && c <= 'F'));
+            return Type.NUMBER;
+        }
+        else if(mLineComment != null && is(i, mLineComment))
         {
             j = i;
             do
@@ -76,6 +77,11 @@ public class Tokenizer
                 c = charAt(++j);
             } while (c != '\n' && c != 0);
             return Type.LINE_COMMENT;
+        }
+        else if ((op = findSpecial(i)) != null)
+        {
+            j = i + op.length();
+            return Type.SPECIAL;
         }
         else
         {
@@ -108,6 +114,22 @@ public class Tokenizer
             return 0;
         else
             return s.charAt(i);
+    }
+    
+    private String findSpecial(int b)
+    {
+        // TODO
+        // This could be faster
+        // Either use binary search or maybe a state machine
+        if (mSpecials != null)
+        {
+            for (String s : mSpecials)
+            {
+                if (is(b, s))
+                    return s;
+            }
+        }
+        return null;
     }
     
     private boolean is(int b, String f)

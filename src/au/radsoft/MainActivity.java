@@ -11,7 +11,7 @@ import android.text.*;
 
 import static au.radsoft.utils.CharSequenceUtils.*;
 
-public class MainActivity extends Activity implements EditText.SelectionChangedListener
+public class MainActivity extends Activity implements EditText.SelectionChangedListener, TextWatcher
 {
     static final int ACTIVITY_OPEN_FILE = 1;
     static final int ACTIVITY_SAVE_FILE = 2;
@@ -53,6 +53,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             }
         );
         mEdit.addSelectionChangedListener(this);
+        mEdit.addTextChangedListener(this);
         
         mStatusScheme = (TextView) findViewById(R.id.scheme);
         mStatusLineEnding = (TextView) findViewById(R.id.line_ending);
@@ -324,6 +325,39 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         }
     }
     
+    @Override //TextWatcher
+    public void afterTextChanged(Editable s) { }
+    
+    @Override //TextWatcher
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+    
+    @Override //TextWatcher
+    public void onTextChanged(CharSequence s, int start, int before, int count)
+    {
+        Layout layout = mEdit.getLayout();
+        if (layout != null)
+        {
+            int lineBegin = layout.getLineForOffset(start);
+            int lineEnd = layout.getLineForOffset(start + count);
+            
+            lineBegin = Math.max(lineBegin - 10, 0);
+            lineEnd = Math.min(lineEnd + 10, layout.getLineCount() - 1);
+            
+            int lineBeginOffset = layout.getLineStart(lineBegin);
+            int lineEndOffset = layout.getLineEnd(lineEnd);
+            
+            if (mScheme != null)
+            {
+                SyntaxHighlighter sh = new SyntaxHighlighter(mEdit.getText(), mScheme);
+                sh.highlight(lineBeginOffset, lineEndOffset);
+            }
+            else
+            {
+                SyntaxHighlighter.remove(mEdit.getText(), lineBeginOffset, lineEndOffset);
+            }
+        }
+    }
+    
     void checkSave(String msg, final Runnable cb)
     {
         if (!mUndoRedoHelper.isSaved())
@@ -466,7 +500,11 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         if (mScheme != null)
         {
             SyntaxHighlighter sh = new SyntaxHighlighter(mEdit.getText(), mScheme);
-            sh.highlight();
+            sh.highlight(0, mEdit.getText().length());
+        }
+        else
+        {
+            SyntaxHighlighter.remove(mEdit.getText(), 0, mEdit.getText().length());
         }
     }
     
@@ -544,16 +582,16 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         {
             if (mException != null)
                 toast("Exception: " + mException);
+            mScheme = SyntaxHighlighter.getScheme(mUri);
             if (result[0] != null)
                 mEdit.setText(result[0]);
             mLineEnding = mFileLineEnding;
-            mScheme = SyntaxHighlighter.getScheme(mUri);
             updateStatusLineEnding();
             updateStatusScheme();
             mUndoRedoHelper.clearHistory();
             mUndoRedoHelper.markSaved(true);
             mLastModified = Utils.getLastModified(mUri);
-            highlightSyntax();
+            //highlightSyntax();
             super.onPostExecute(result);
         }
     }

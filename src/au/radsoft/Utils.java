@@ -21,7 +21,7 @@ class Utils
         return mtm.getMimeTypeFromExtension(extension);
     }
     
-    public static String ifNull(String input, String ifnull)
+    public static <T> T ifNull(T input, T ifnull)
     {
         return input == null ? ifnull : input;
     }
@@ -35,5 +35,14 @@ class Utils
         }
         else
             return -1;
+    }
+    
+    public static <T> T[] concatenate(T[] A, T[] B)
+    {
+        @SuppressWarnings("unchecked")
+        T[] C = (T[]) java.lang.reflect.Array.newInstance(A.getClass().getComponentType(), A.length + B.length);
+        System.arraycopy(A, 0, C, 0, A.length);
+        System.arraycopy(B, 0, C, A.length, B.length);
+        return C;
     }
 }

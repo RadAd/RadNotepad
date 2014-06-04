@@ -16,7 +16,7 @@
         android:scrollHorizontally="true"
         android:clickable="false"
         android:longClickable="false"
-		android:imeOptions="actionNone"
+        android:imeOptions="actionNone"
         android:inputType="text|textNoSuggestions|textMultiLine" />
 
     <LinearLayout

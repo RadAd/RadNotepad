@@ -35,15 +35,30 @@ public class CharSequenceUtils
     {
         // Note: compares numerically, ignores locale
         int d = 0;
-        for (int i = 0; d == 0; ++i)
+        if (l == r)
         {
-            if (i == l.length() || i == r.length())
+            d = 0;
+        }
+        else if (l == null)
+        {
+            d = -1;
+        }
+        else if (r == null)
+        {
+            d = 1;
+        }
+        else
+        {
+            for (int i = 0; d == 0; ++i)
             {
-                d = l.length() - r.length();
-                break;
+                if (i == l.length() || i == r.length())
+                {
+                    d = l.length() - r.length();
+                    break;
+                }
+                else
+                    d = l.charAt(i) - r.charAt(i);
             }
-            else
-                d = l.charAt(i) - r.charAt(i);
         }
         return d;
     }
@@ -52,15 +67,30 @@ public class CharSequenceUtils
     {
         // Note: compares numerically, ignores locale
         int d = 0;
-        for (int i = 0; d == 0; ++i)
+        if (l == r)
         {
-            if (i == l.length() || i == r.length())
+            d = 0;
+        }
+        else if (l == null)
+        {
+            d = -1;
+        }
+        else if (r == null)
+        {
+            d = 1;
+        }
+        else
+        {
+            for (int i = 0; d == 0; ++i)
             {
-                d = l.length() - r.length();
-                break;
+                if (i == l.length() || i == r.length())
+                {
+                    d = l.length() - r.length();
+                    break;
+                }
+                else
+                    d = Character.toUpperCase(l.charAt(i)) - Character.toUpperCase(r.charAt(i));
             }
-            else
-                d = Character.toUpperCase(l.charAt(i)) - Character.toUpperCase(r.charAt(i));
         }
         return d;
     }
