@@ -11,13 +11,16 @@ class SyntaxHighlighter
 {
     static class Scheme
     {
-        Scheme(String name, boolean caseSensitive, String tokenStart, String preProcessor, String lineComment, String[] keywords, String[] literals, String[] specials)
+        Scheme(String name, boolean caseSensitive, String tokenStart, String preProcessor, String lineComment, String streamCommentBegin, String streamCommentEnd,
+            String[] keywords, String[] literals, String[] specials)
         {
             this.name = name;
             this.caseSensitive = caseSensitive;
             this.tokenStart = tokenStart;
             this.preProcessor = preProcessor;
             this.lineComment = lineComment;
+            this.streamCommentBegin = streamCommentBegin;
+            this.streamCommentEnd = streamCommentEnd;
             this.keywords = keywords;
             this.literals = literals;
             this.specials = specials;
@@ -28,6 +31,8 @@ class SyntaxHighlighter
         final String tokenStart;
         final String preProcessor;
         final String lineComment;
+        final String streamCommentBegin;
+        final String streamCommentEnd;
         final String[] keywords;
         final String[] literals;
         final String[] specials;
@@ -36,10 +41,9 @@ class SyntaxHighlighter
     private static String[] sJavaLiterals = { "true", "false", "null" };
     private static String[] sBatchLiterals = { "CON", "AUX", "PRN", "NUL" };
     
-    private static String[] sJavaSpecials = { "\"", "'", "/*", "*/" };
+    private static String[] sStringSpecials = { "\"", "'" };
     private static String[] sBatchSpecials = { "%", "!" };
     private static String[] sConfSpecials = { "[", "]" };
-    private static String[] sXmlSpecials = { "\"", "<!--", "-->" };
     
     private static String[] sJavaKeywords =
         { "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const",
@@ -54,10 +58,10 @@ class SyntaxHighlighter
           "mklink", "move", "path", "pause", "popd", "prompt", "pushd", "rd", "rem", "ren", "rename",
           "rmdir", "set", "setlocal", "shift", "start", "time", "title", "type", "ver", "verify", "vol" };
           
-    private static Scheme mSchemeJava  = new Scheme("Java",  true,  "_",  "@",  "//",   sJavaKeywords,  sJavaLiterals,  sJavaSpecials);
-    private static Scheme mSchemeBatch = new Scheme("Batch", false, ":",  null, "rem ", sBatchKeywords, sBatchLiterals, sBatchSpecials);
-    private static Scheme mSchemeConf  = new Scheme("Conf",  true,  null, null, "#",    null,           null,           sConfSpecials);
-    private static Scheme mSchemeXml   = new Scheme("Xml",   true,  null, null, null,   null,           null,           sXmlSpecials);
+    private static Scheme mSchemeJava  = new Scheme("Java",  true,  "_",  "@",  "//",   "/*", "*/",    sJavaKeywords,  sJavaLiterals,  sStringSpecials);
+    private static Scheme mSchemeBatch = new Scheme("Batch", false, ":",  null, "rem ", null, null,    sBatchKeywords, sBatchLiterals, sBatchSpecials);
+    private static Scheme mSchemeConf  = new Scheme("Conf",  true,  null, null, "#",    null, null,    null,           null,           sConfSpecials);
+    private static Scheme mSchemeXml   = new Scheme("Xml",   true,  null, null, null,   "<!--", "-->", null,           null,           sStringSpecials);
         
     static Scheme getScheme(android.net.Uri uri)
     {
@@ -113,6 +117,14 @@ class SyntaxHighlighter
         t.mTokenStart = mScheme.tokenStart;
         t.mLineComment = mScheme.lineComment;
         t.mSpecials = mScheme.specials;
+        if (mScheme.streamCommentBegin != null && mScheme.streamCommentEnd != null)
+        {
+            String[] streamComment = { mScheme.streamCommentBegin, mScheme.streamCommentEnd };
+            if (t.mSpecials != null)
+                t.mSpecials = Utils.concatenate(t.mSpecials, streamComment);
+            else
+                t.mSpecials = streamComment;
+        }
         if (t.mSpecials != null)
             java.util.Arrays.sort(t.mSpecials);
         CharSequence lastToken = null;
@@ -155,25 +167,21 @@ class SyntaxHighlighter
                     CharSequence op = t.get();
                     boolean skipws = true;
                     int color = 0xFFFF00FF;
-                    if (mComp.compare(op, "/*") == 0)
+                    if (mComp.compare(op, mScheme.streamCommentBegin) == 0)
                     {
-                        op = "*/";
+                        op = mScheme.streamCommentEnd;
                         color = 0xFF00FF00;
                     }
                     else if (mComp.compare(op, "%") == 0 || mComp.compare(op, "!") == 0)
                     {
                         skipws = false;
                     }
-                    else if (mComp.compare(op, "<!--") == 0)
-                    {
-                        op = "-->";
-                        color = 0xFF00FF00;
-                    }
                     else if (mComp.compare(op, "[") == 0)
                     {
                         op = "]";
                         color = 0xFFFFFF00;
                     }
+                    
                     if (findSpecial(t, op, skipws))
                     {
                         spanend = t.getEnd() + start - 1;
