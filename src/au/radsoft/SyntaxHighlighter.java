@@ -4,10 +4,8 @@ import android.text.Editable;
 import au.radsoft.utils.CharSequenceUtils;
 
 // TODO
-
-// Case sensitive/insensitive keywords
-
 // xml distinguish between attributes and text ie inside/outside of </>
+// When removing highlight, return range affected to pass on to highlight
 
 class SyntaxHighlighter
 {
@@ -203,6 +201,7 @@ class SyntaxHighlighter
     {
         boolean cont = true;
         boolean endtoken = false;
+        t.mLineComment = null;
         while (cont)
         {
             Tokenizer.Type tt = t.getNextToken(skipws);
@@ -222,6 +221,7 @@ class SyntaxHighlighter
                 break;
             }
         }
+        t.mLineComment = mScheme.lineComment;
         return endtoken;
     }
 }

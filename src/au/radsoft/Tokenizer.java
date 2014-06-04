@@ -1,5 +1,8 @@
 package au.radsoft;
 
+// TODO
+// Support escape characters ie /" in strings
+
 public class Tokenizer
 {
     private final CharSequence s;
@@ -140,11 +143,13 @@ public class Tokenizer
     
     private boolean is(int b, String f)
     {
-        for (int i = 0; i < f.length(); ++i)
-        {
-            if (f.charAt(i) != charAt(b + i))
-                return false;
-        }
-        return true;
+        //for (int i = 0; i < f.length(); ++i)
+        //{
+            //if (f.charAt(i) != charAt(b + i))
+                //return false;
+        //}
+        //return true;
+        int e = Math.min(b + f.length(), s.length());
+        return au.radsoft.utils.CharSequenceUtils.compare(f, s.subSequence(b, e)) == 0;
     }
 }
