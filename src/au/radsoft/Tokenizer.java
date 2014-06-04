@@ -1,8 +1,5 @@
 package au.radsoft;
 
-// TODO
-// Support escape characters ie /" in strings
-
 public class Tokenizer
 {
     private final CharSequence s;
@@ -13,6 +10,7 @@ public class Tokenizer
     String mTokenStart = "_";   // An array of individual chars
     String mLineComment = "//";
     String[] mSpecials = { "\"", "'", "/*", "*/" };
+    char mEscape = '\\';
     
     public enum Type { WHITE_SPACE, TOKEN, NUMBER, LINE_COMMENT, SPECIAL, UNKNOWN, END };
     
@@ -96,6 +94,8 @@ public class Tokenizer
         }
         else
         {
+            if (c == mEscape)
+                ++i;
             j = i + 1;
             return Type.UNKNOWN;
         }
