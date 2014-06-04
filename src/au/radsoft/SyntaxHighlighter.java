@@ -13,9 +13,10 @@ class SyntaxHighlighter
 {
     static class Scheme
     {
-        Scheme(String name, String tokenStart, String preProcessor, String lineComment, String[] keywords, String[] literals, String[] specials)
+        Scheme(String name, boolean caseSensitive, String tokenStart, String preProcessor, String lineComment, String[] keywords, String[] literals, String[] specials)
         {
             this.name = name;
+            this.caseSensitive = caseSensitive;
             this.tokenStart = tokenStart;
             this.preProcessor = preProcessor;
             this.lineComment = lineComment;
@@ -25,6 +26,7 @@ class SyntaxHighlighter
         }
         
         final String name;
+        final boolean caseSensitive;
         final String tokenStart;
         final String preProcessor;
         final String lineComment;
@@ -54,10 +56,10 @@ class SyntaxHighlighter
           "mklink", "move", "path", "pause", "popd", "prompt", "pushd", "rd", "rem", "ren", "rename",
           "rmdir", "set", "setlocal", "shift", "start", "time", "title", "type", "ver", "verify", "vol" };
           
-    private static Scheme mSchemeJava  = new Scheme("Java",  "_", "@", "//",   sJavaKeywords,  sJavaLiterals,  sJavaSpecials);
-    private static Scheme mSchemeBatch = new Scheme("Batch", ":", "",  "rem ", sBatchKeywords, sBatchLiterals, sBatchSpecials);
-    private static Scheme mSchemeConf  = new Scheme("Conf",  "",  "",  "#",    null,           null,           sConfSpecials);
-    private static Scheme mSchemeXml   = new Scheme("Xml",   "",  "",  null,   null,           null,           sXmlSpecials);
+    private static Scheme mSchemeJava  = new Scheme("Java",  true,  "_",  "@",  "//",   sJavaKeywords,  sJavaLiterals,  sJavaSpecials);
+    private static Scheme mSchemeBatch = new Scheme("Batch", false, ":",  null, "rem ", sBatchKeywords, sBatchLiterals, sBatchSpecials);
+    private static Scheme mSchemeConf  = new Scheme("Conf",  true,  null, null, "#",    null,           null,           sConfSpecials);
+    private static Scheme mSchemeXml   = new Scheme("Xml",   true,  null, null, null,   null,           null,           sXmlSpecials);
         
     static Scheme getScheme(android.net.Uri uri)
     {
@@ -88,10 +90,14 @@ class SyntaxHighlighter
     private Editable mEditable;
     private Scheme mScheme;
     
+    private java.util.Comparator<CharSequence> mComp; 
+    
     SyntaxHighlighter(Editable e, Scheme scheme)
     {
         mEditable = e;
         mScheme = scheme;
+        
+        mComp = mScheme.caseSensitive ? new CharSequenceUtils.Comparator() : new CharSequenceUtils.ComparatorIgnoreCase();
     }
     
     static void remove(Editable editable, int start, int end)
@@ -111,13 +117,12 @@ class SyntaxHighlighter
         t.mSpecials = mScheme.specials;
         if (t.mSpecials != null)
             java.util.Arrays.sort(t.mSpecials);
-        java.util.Comparator<CharSequence> comp = new CharSequenceUtils.Comparator();
         CharSequence lastToken = null;
         
         boolean cont = true;
         while (cont)
         {
-            Tokenizer.Type tt = t.getNextToken();
+            Tokenizer.Type tt = t.getNextToken(true);
             
             Object span = null;
             int spanstart = t.getStart() + start;
@@ -125,17 +130,17 @@ class SyntaxHighlighter
             switch (tt)
             {
             case UNKNOWN:
-                if (CharSequenceUtils.compare(t.get(), mScheme.preProcessor) == 0)
+                if (mScheme.preProcessor != null && mComp.compare(t.get(), mScheme.preProcessor) == 0)
                     span = new android.text.style.ForegroundColorSpan(0xFFFF6820);
                     
             case TOKEN:
-                if (t.mTokenStart.indexOf(t.get().charAt(0)) >= 0)
+                if (t.mTokenStart != null && t.mTokenStart.indexOf(t.get().charAt(0)) >= 0)
                     span = new android.text.style.ForegroundColorSpan(0xFFFFFF00);
-                else if (CharSequenceUtils.compare(lastToken, mScheme.preProcessor) == 0)
+                else if (mScheme.preProcessor != null && mComp.compare(lastToken, mScheme.preProcessor) == 0)
                     span = new android.text.style.ForegroundColorSpan(0xFFFF6820);
-                else if (mScheme.keywords != null && java.util.Arrays.binarySearch(mScheme.keywords, t.get(), comp) >= 0)
+                else if (mScheme.keywords != null && java.util.Arrays.binarySearch(mScheme.keywords, t.get(), mComp) >= 0)
                     span = new android.text.style.ForegroundColorSpan(0xFF00FFFF);
-                else if (mScheme.literals != null && java.util.Arrays.binarySearch(mScheme.literals, t.get(), comp) >= 0)
+                else if (mScheme.literals != null && java.util.Arrays.binarySearch(mScheme.literals, t.get(), mComp) >= 0)
                     span = new android.text.style.ForegroundColorSpan(0xFFFF00FF);
                 break;
                 
@@ -150,24 +155,28 @@ class SyntaxHighlighter
             case SPECIAL:
                 {
                     CharSequence op = t.get();
+                    boolean skipws = true;
                     int color = 0xFFFF00FF;
-                    if (CharSequenceUtils.compare(op, "/*") == 0)
+                    if (mComp.compare(op, "/*") == 0)
                     {
                         op = "*/";
                         color = 0xFF00FF00;
                     }
-                    else if (CharSequenceUtils.compare(op, "<!--") == 0)
+                    else if (mComp.compare(op, "%") == 0 || mComp.compare(op, "!") == 0)
+                    {
+                        skipws = false;
+                    }
+                    else if (mComp.compare(op, "<!--") == 0)
                     {
                         op = "-->";
                         color = 0xFF00FF00;
                     }
-                    else if (CharSequenceUtils.compare(op, "[") == 0)
+                    else if (mComp.compare(op, "[") == 0)
                     {
                         op = "]";
                         color = 0xFFFFFF00;
                     }
-                    spanend = t.getEnd() + start;
-                    if (findSpecial(t, op))
+                    if (findSpecial(t, op, skipws))
                     {
                         spanend = t.getEnd() + start - 1;
                         cont = false;
@@ -190,17 +199,21 @@ class SyntaxHighlighter
         }
     }
     
-    private boolean findSpecial(Tokenizer t, CharSequence sp)
+    private boolean findSpecial(Tokenizer t, CharSequence sp, boolean skipws)
     {
         boolean cont = true;
         boolean endtoken = false;
         while (cont)
         {
-            Tokenizer.Type tt = t.getNextToken();
+            Tokenizer.Type tt = t.getNextToken(skipws);
             switch (tt)
             {
+            case WHITE_SPACE:
+                cont = false;
+                break;
+                
             case SPECIAL:
-                cont = CharSequenceUtils.compare(t.get(), sp) != 0;
+                cont = mComp.compare(t.get(), sp) != 0;
                 break;
                 
             case END:

@@ -10,7 +10,7 @@ public class Tokenizer
     String mLineComment = "//";
     String[] mSpecials = { "\"", "'", "/*", "*/" };
     
-    public enum Type { TOKEN, NUMBER, LINE_COMMENT, SPECIAL, UNKNOWN, END };
+    public enum Type { WHITE_SPACE, TOKEN, NUMBER, LINE_COMMENT, SPECIAL, UNKNOWN, END };
     
     public Tokenizer(CharSequence s)
     {
@@ -19,7 +19,7 @@ public class Tokenizer
             java.util.Arrays.sort(mSpecials);
     }
     
-    public Type getNextToken()
+    public Type getNextToken(boolean skipws)
     {
         i = j - 1;
         char c = 0;
@@ -28,13 +28,28 @@ public class Tokenizer
             c = charAt(++i);
         } while (Character.isWhitespace(c));
         
+        if (!skipws && i != j)
+        {
+            j = i;
+            return Type.WHITE_SPACE;
+        }
+        
         String op = null;
         if (i >= s.length())
         {
             j = i + 1;
             return Type.END;
         }
-        else if (mTokenStart.indexOf(c) >= 0 || Character.isAlphabetic(c))
+        else if(mLineComment != null && is(i, mLineComment))
+        {
+            j = i;
+            do
+            {
+                c = charAt(++j);
+            } while (c != '\n' && c != 0);
+            return Type.LINE_COMMENT;
+        }
+        else if ((mTokenStart != null && mTokenStart.indexOf(c) >= 0) || Character.isAlphabetic(c))
         {
             j = i;
             do
@@ -68,15 +83,6 @@ public class Tokenizer
                 c = charAt(++j);
             } while (Character.isDigit(c) || (c > 'a' && c <= 'f') || (c > 'A' && c <= 'F'));
             return Type.NUMBER;
-        }
-        else if(mLineComment != null && is(i, mLineComment))
-        {
-            j = i;
-            do
-            {
-                c = charAt(++j);
-            } while (c != '\n' && c != 0);
-            return Type.LINE_COMMENT;
         }
         else if ((op = findSpecial(i)) != null)
         {
