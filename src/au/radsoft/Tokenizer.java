@@ -6,6 +6,7 @@ package au.radsoft;
 public class Tokenizer
 {
     private final CharSequence s;
+    private final java.util.Comparator<CharSequence> comp; 
     private int i = 0;
     private int j = 0;
     
@@ -15,9 +16,10 @@ public class Tokenizer
     
     public enum Type { WHITE_SPACE, TOKEN, NUMBER, LINE_COMMENT, SPECIAL, UNKNOWN, END };
     
-    public Tokenizer(CharSequence s)
+    public Tokenizer(CharSequence s, java.util.Comparator<CharSequence> comp)
     {
         this.s = s;
+        this.comp = comp;
         if (mSpecials != null)
             java.util.Arrays.sort(mSpecials);
     }
@@ -143,13 +145,7 @@ public class Tokenizer
     
     private boolean is(int b, String f)
     {
-        //for (int i = 0; i < f.length(); ++i)
-        //{
-            //if (f.charAt(i) != charAt(b + i))
-                //return false;
-        //}
-        //return true;
         int e = Math.min(b + f.length(), s.length());
-        return au.radsoft.utils.CharSequenceUtils.compare(f, s.subSequence(b, e)) == 0;
+        return comp.compare(f, s.subSequence(b, e)) == 0;
     }
 }

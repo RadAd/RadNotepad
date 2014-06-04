@@ -109,7 +109,7 @@ class SyntaxHighlighter
     {
         remove(mEditable, start, end);
         
-        Tokenizer t = new Tokenizer(mEditable.subSequence(start, end));
+        Tokenizer t = new Tokenizer(mEditable.subSequence(start, end), mComp);
         t.mTokenStart = mScheme.tokenStart;
         t.mLineComment = mScheme.lineComment;
         t.mSpecials = mScheme.specials;
