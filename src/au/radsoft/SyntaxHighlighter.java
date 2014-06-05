@@ -8,14 +8,32 @@ import au.radsoft.utils.CharSequenceUtils;
 // When removing highlight, return range affected to pass on to highlight
 // cpp - check preprocessor keywords
 // cpp - highlight <filename.h> in preprocessor
+// cpp - have category for primitive types ???
 // distinguish labels
+// batch handle a tab after rem
 
 class SyntaxHighlighter
 {
+    static class SpecialPair
+    {
+        SpecialPair(String begin, String end, boolean skipws, int color)
+        {
+            this.begin = begin;
+            this.end = end;
+            this.skipws = skipws;
+            this.color = color;
+        }
+        
+        final String begin;
+        final String end;
+        final boolean skipws;
+        final int color;
+    };
+    
     static class Scheme
     {
-        Scheme(String name, boolean caseSensitive, String tokenStart, String tokenChars, String preProcessor, String lineComment, String streamCommentBegin, String streamCommentEnd,
-            String[] keywords, String[] literals, String[] specials)
+        Scheme(String name, boolean caseSensitive, String tokenStart, String tokenChars, String preProcessor, String lineComment,
+            String[] keywords, String[] literals, SpecialPair[] specialPairs)
         {
             this.name = name;
             this.caseSensitive = caseSensitive;
@@ -23,11 +41,9 @@ class SyntaxHighlighter
             this.tokenChars = tokenChars;
             this.preProcessor = preProcessor;
             this.lineComment = lineComment;
-            this.streamCommentBegin = streamCommentBegin;
-            this.streamCommentEnd = streamCommentEnd;
             this.keywords = keywords;
             this.literals = literals;
-            this.specials = specials;
+            this.specialPairs = specialPairs;
         }
         
         final String name;
@@ -36,20 +52,60 @@ class SyntaxHighlighter
         final String tokenChars;
         final String preProcessor;
         final String lineComment;
-        final String streamCommentBegin;
-        final String streamCommentEnd;
         final String[] keywords;
         final String[] literals;
-        final String[] specials;
+        final SpecialPair[] specialPairs;
+        
+        String[] getSpecials()
+        {
+            if (specialPairs == null)
+                return null;
+            
+            int size = 0;
+            for (SpecialPair sp : specialPairs)
+            {
+                size += sp.end != null && sp.end != sp.begin ? 2 : 1;
+            }
+            
+            String[] s = new String[size];
+            int i = 0;
+            for (SpecialPair sp : specialPairs)
+            {
+                s[i++] = sp.begin;
+                if (sp.end != null && sp.end != sp.begin)
+                    s[i++] = sp.end;
+            }
+            
+            return s;
+        }
+        
+        SpecialPair findSpecialPairBegin(CharSequence s, java.util.Comparator<CharSequence> comp)
+        {
+            if (specialPairs != null)
+            {
+                for (SpecialPair sp : specialPairs)
+                {
+                    if (comp.compare(sp.begin, s) == 0)
+                        return sp;
+                }
+            }
+            return null;
+        }
     }
     
     private static String[] sCppLiterals = { "true", "false", "nullptr" };
     private static String[] sJavaLiterals = { "true", "false", "null" };
     private static String[] sBatchLiterals = { "CON", "AUX", "PRN", "NUL" };
     
-    private static String[] sStringSpecials = { "\"", "'" };
-    private static String[] sBatchSpecials = { "%", "!", ":", "2>", "&1" };
-    private static String[] sConfSpecials = { "[", "]" };
+    private static SpecialPair[] sCppSpecialPairs = {
+        new SpecialPair("\"", "\"", true, 0xFFFF00FF), new SpecialPair("'", "'", true, 0xFFFF00FF), new SpecialPair("/*", "*/", true, 0xFF00FF00) };
+    private static SpecialPair[] sBatchSpecialPairs = {
+        new SpecialPair("%", "%", false, 0xFF007F7F), new SpecialPair("!", "!", false, 0xFF007F7F),
+        new SpecialPair(":", null, false, 0xFFFFFF00), new SpecialPair("2>", null, false, 0), new SpecialPair("&1", null, false, 0) };
+    private static SpecialPair[] sConfSpecialPairs = {
+        new SpecialPair("[", "]", true, 0xFFFFFF00) };
+    private static SpecialPair[] sXmlSpecialPairs = {
+        new SpecialPair("\"", "\"", true, 0xFFFF00FF), new SpecialPair("'", "'", true, 0xFFFF00FF), new SpecialPair("<!--", "-->", true, 0xFF00FF00) };
     
     private static String[] sCppKeywords =
         { "alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand", "bitor",
@@ -76,11 +132,11 @@ class SyntaxHighlighter
           "mklink", "move", "path", "pause", "popd", "prompt", "pushd", "rd", "rem", "ren", "rename",
           "rmdir", "set", "setlocal", "shift", "start", "time", "title", "type", "ver", "verify", "vol" };
           
-    private static Scheme mSchemeCPP   = new Scheme("C/C++", true,  "_",  "_",  "#",  "//",   "/*", "*/",    sCppKeywords,   sCppLiterals,   sStringSpecials);
-    private static Scheme mSchemeJava  = new Scheme("Java",  true,  "_",  "_",  "@",  "//",   "/*", "*/",    sJavaKeywords,  sJavaLiterals,  sStringSpecials);
-    private static Scheme mSchemeBatch = new Scheme("Batch", false, "_",  "_",  null, "rem ", null, null,    sBatchKeywords, sBatchLiterals, sBatchSpecials);
-    private static Scheme mSchemeConf  = new Scheme("Conf",  true,  null, null, null, "#",    null, null,    null,           null,           sConfSpecials);
-    private static Scheme mSchemeXml   = new Scheme("Xml",   true,  null, ".:", "<",  null,   "<!--", "-->", null,           null,           sStringSpecials);
+    private static Scheme mSchemeCPP   = new Scheme("C/C++", true,  "_",  "_",  "#",  "//",   sCppKeywords,   sCppLiterals,   sCppSpecialPairs);
+    private static Scheme mSchemeJava  = new Scheme("Java",  true,  "_",  "_",  "@",  "//",   sJavaKeywords,  sJavaLiterals,  sCppSpecialPairs);
+    private static Scheme mSchemeBatch = new Scheme("Batch", false, "_",  "_",  null, "rem ", sBatchKeywords, sBatchLiterals, sBatchSpecialPairs);
+    private static Scheme mSchemeConf  = new Scheme("Conf",  true,  null, null, null, "#",    null,           null,           sConfSpecialPairs);
+    private static Scheme mSchemeXml   = new Scheme("Xml",   true,  null, ".:", "<",  null,   null,           null,           sXmlSpecialPairs);
         
     static Scheme getScheme(android.net.Uri uri)
     {
@@ -143,15 +199,7 @@ class SyntaxHighlighter
         t.mTokenStart = mScheme.tokenStart;
         t.mTokenChars = mScheme.tokenChars;
         t.mLineComment = mScheme.lineComment;
-        t.mSpecials = mScheme.specials;
-        if (mScheme.streamCommentBegin != null && mScheme.streamCommentEnd != null)
-        {
-            String[] streamComment = { mScheme.streamCommentBegin, mScheme.streamCommentEnd };
-            if (t.mSpecials != null)
-                t.mSpecials = Utils.concatenate(t.mSpecials, streamComment);
-            else
-                t.mSpecials = streamComment;
-        }
+        t.mSpecials = mScheme.getSpecials();
         if (t.mSpecials != null)
             java.util.Arrays.sort(t.mSpecials);
         CharSequence lastToken = null;
@@ -190,48 +238,21 @@ class SyntaxHighlighter
                 
             case SPECIAL:
                 {
-                    CharSequence op = t.get();
-                    boolean skipws = true;
-                    int color = 0xFFFF00FF;
-                    if (mComp.compare(op, mScheme.streamCommentBegin) == 0)
+                    SpecialPair sp = mScheme.findSpecialPairBegin(t.get(), mComp);
+                    if (sp != null)
                     {
-                        op = mScheme.streamCommentEnd;
-                        color = 0xFF00FF00;
+                        if (findSpecial(t, sp.end, sp.skipws))
+                        {
+                            spanend = t.getEnd() + start - 1;
+                            cont = false;
+                        }
+                        else
+                        {
+                            spanend = t.getEnd() + start;
+                        }
+                        if (sp.color != 0)
+                            span = new android.text.style.ForegroundColorSpan(sp.color);
                     }
-                    else if (mComp.compare(op, "%") == 0 || mComp.compare(op, "!") == 0)
-                    {
-                        color = 0xFF007F7F;
-                        skipws = false;
-                    }
-                    else if (mComp.compare(op, ":") == 0)
-                    {
-                        op = null;
-                        color = 0xFFFFFF00;
-                        skipws = false;
-                    }
-                    else if (mComp.compare(op, "2>") == 0 || mComp.compare(op, "&1") == 0)
-                    {
-                        op = null;
-                        color = 0;
-                        skipws = false;
-                    }
-                    else if (mComp.compare(op, "[") == 0)
-                    {
-                        op = "]";
-                        color = 0xFFFFFF00;
-                    }
-                    
-                    if (findSpecial(t, op, skipws))
-                    {
-                        spanend = t.getEnd() + start - 1;
-                        cont = false;
-                    }
-                    else
-                    {
-                        spanend = t.getEnd() + start;
-                    }
-                    if (color != 0)
-                        span = new android.text.style.ForegroundColorSpan(color);
                 }
                 break;
                 
