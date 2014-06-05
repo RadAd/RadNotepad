@@ -53,6 +53,11 @@ public class Tokenizer
             } while (c != '\n' && c != 0);
             return Type.LINE_COMMENT;
         }
+        else if ((op = findSpecial(i)) != null)
+        {
+            j = i + op.length();
+            return Type.SPECIAL;
+        }
         else if (in(mTokenStart, c) || Character.isAlphabetic(c))
         {
             j = i;
@@ -87,11 +92,6 @@ public class Tokenizer
                 c = charAt(++j);
             } while (Character.isDigit(c) || (c > 'a' && c <= 'f') || (c > 'A' && c <= 'F'));
             return Type.NUMBER;
-        }
-        else if ((op = findSpecial(i)) != null)
-        {
-            j = i + op.length();
-            return Type.SPECIAL;
         }
         else
         {

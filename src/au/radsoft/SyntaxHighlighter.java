@@ -48,7 +48,7 @@ class SyntaxHighlighter
     private static String[] sBatchLiterals = { "CON", "AUX", "PRN", "NUL" };
     
     private static String[] sStringSpecials = { "\"", "'" };
-    private static String[] sBatchSpecials = { "%", "!" };
+    private static String[] sBatchSpecials = { "%", "!", ":", "2>", "&1" };
     private static String[] sConfSpecials = { "[", "]" };
     
     private static String[] sCppKeywords =
@@ -72,13 +72,13 @@ class SyntaxHighlighter
           "throw", "throws", "transient", "try", "void", "volatile", "while" };
     private static String[] sBatchKeywords =
         { "assoc", "break", "call", "cd", "chdir", "cls", "color", "copy", "date", "del", "dir",
-          "echo", "endlocal", "erase", "exit", "ftype", "goto", "graftabl", "if", "md", "mkdir",
+          "echo", "endlocal", "erase", "exit", "for", "ftype", "goto", "graftabl", "if", "md", "mkdir",
           "mklink", "move", "path", "pause", "popd", "prompt", "pushd", "rd", "rem", "ren", "rename",
           "rmdir", "set", "setlocal", "shift", "start", "time", "title", "type", "ver", "verify", "vol" };
           
     private static Scheme mSchemeCPP   = new Scheme("C/C++", true,  "_",  "_",  "#",  "//",   "/*", "*/",    sCppKeywords,   sCppLiterals,   sStringSpecials);
     private static Scheme mSchemeJava  = new Scheme("Java",  true,  "_",  "_",  "@",  "//",   "/*", "*/",    sJavaKeywords,  sJavaLiterals,  sStringSpecials);
-    private static Scheme mSchemeBatch = new Scheme("Batch", false, ":",  "_",  null, "rem ", null, null,    sBatchKeywords, sBatchLiterals, sBatchSpecials);
+    private static Scheme mSchemeBatch = new Scheme("Batch", false, "_",  "_",  null, "rem ", null, null,    sBatchKeywords, sBatchLiterals, sBatchSpecials);
     private static Scheme mSchemeConf  = new Scheme("Conf",  true,  null, null, null, "#",    null, null,    null,           null,           sConfSpecials);
     private static Scheme mSchemeXml   = new Scheme("Xml",   true,  null, ".:", "<",  null,   "<!--", "-->", null,           null,           sStringSpecials);
         
@@ -172,10 +172,7 @@ class SyntaxHighlighter
                 break;
                     
             case TOKEN:
-                //if (t.mTokenStart != null && t.mTokenStart.indexOf(t.get().charAt(0)) >= 0)
-                if (t.get().charAt(0) == ':')
-                    span = new android.text.style.ForegroundColorSpan(0xFFFFFF00);
-                else if (mScheme.preProcessor != null && mComp.compare(lastToken, mScheme.preProcessor) == 0)
+                if (mScheme.preProcessor != null && mComp.compare(lastToken, mScheme.preProcessor) == 0)
                     span = new android.text.style.ForegroundColorSpan(0xFFFF6820);
                 else if (mScheme.keywords != null && java.util.Arrays.binarySearch(mScheme.keywords, t.get(), mComp) >= 0)
                     span = new android.text.style.ForegroundColorSpan(0xFF00FFFF);
@@ -206,6 +203,18 @@ class SyntaxHighlighter
                         color = 0xFF007F7F;
                         skipws = false;
                     }
+                    else if (mComp.compare(op, ":") == 0)
+                    {
+                        op = null;
+                        color = 0xFFFFFF00;
+                        skipws = false;
+                    }
+                    else if (mComp.compare(op, "2>") == 0 || mComp.compare(op, "&1") == 0)
+                    {
+                        op = null;
+                        color = 0;
+                        skipws = false;
+                    }
                     else if (mComp.compare(op, "[") == 0)
                     {
                         op = "]";
@@ -221,7 +230,8 @@ class SyntaxHighlighter
                     {
                         spanend = t.getEnd() + start;
                     }
-                    span = new android.text.style.ForegroundColorSpan(color);
+                    if (color != 0)
+                        span = new android.text.style.ForegroundColorSpan(color);
                 }
                 break;
                 
