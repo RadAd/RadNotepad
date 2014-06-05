@@ -4,19 +4,23 @@ import android.text.Editable;
 import au.radsoft.utils.CharSequenceUtils;
 
 // TODO
-// xml distinguish between attributes and text ie inside/outside of </>
+// xml - distinguish between attributes and text ie inside/outside of </>
 // When removing highlight, return range affected to pass on to highlight
+// cpp - check preprocessor keywords
+// cpp - highlight <filename.h> in preprocessor
+// distinguish labels
 
 class SyntaxHighlighter
 {
     static class Scheme
     {
-        Scheme(String name, boolean caseSensitive, String tokenStart, String preProcessor, String lineComment, String streamCommentBegin, String streamCommentEnd,
+        Scheme(String name, boolean caseSensitive, String tokenStart, String tokenChars, String preProcessor, String lineComment, String streamCommentBegin, String streamCommentEnd,
             String[] keywords, String[] literals, String[] specials)
         {
             this.name = name;
             this.caseSensitive = caseSensitive;
             this.tokenStart = tokenStart;
+            this.tokenChars = tokenChars;
             this.preProcessor = preProcessor;
             this.lineComment = lineComment;
             this.streamCommentBegin = streamCommentBegin;
@@ -29,6 +33,7 @@ class SyntaxHighlighter
         final String name;
         final boolean caseSensitive;
         final String tokenStart;
+        final String tokenChars;
         final String preProcessor;
         final String lineComment;
         final String streamCommentBegin;
@@ -38,6 +43,7 @@ class SyntaxHighlighter
         final String[] specials;
     }
     
+    private static String[] sCppLiterals = { "true", "false", "nullptr" };
     private static String[] sJavaLiterals = { "true", "false", "null" };
     private static String[] sBatchLiterals = { "CON", "AUX", "PRN", "NUL" };
     
@@ -45,6 +51,18 @@ class SyntaxHighlighter
     private static String[] sBatchSpecials = { "%", "!" };
     private static String[] sConfSpecials = { "[", "]" };
     
+    private static String[] sCppKeywords =
+        { "alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand", "bitor",
+          "bool", "break", "case", "catch", "char", "char16_t", "char32_t", "class",
+          "compl", "const", "constexpr", "const_cast", "continue", "decltype", "default",
+          "delete", "do", "double", "dynamic_cast", "else", "enum", "explicit", "export",
+          "extern", "float", "for", "friend", "goto", "if", "inline", "int", "long",
+          "mutable", "namespace", "new", "noexcept", "not", "not_eq", "operator",
+          "or", "or_eq", "private", "protected", "public", "register", "reinterpret_cast",
+          "return", "short", "signed", "sizeof", "static", "static_assert", "static_cast",
+          "struct", "switch", "template", "this", "thread_local", "throw", "try",
+          "typedef", "typeid", "typename", "union", "unsigned", "using", "virtual", "void",
+          "volatile", "wchar_t", "while", "xor", "xor_eq" };
     private static String[] sJavaKeywords =
         { "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const",
           "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for",
@@ -58,18 +76,26 @@ class SyntaxHighlighter
           "mklink", "move", "path", "pause", "popd", "prompt", "pushd", "rd", "rem", "ren", "rename",
           "rmdir", "set", "setlocal", "shift", "start", "time", "title", "type", "ver", "verify", "vol" };
           
-    private static Scheme mSchemeJava  = new Scheme("Java",  true,  "_",  "@",  "//",   "/*", "*/",    sJavaKeywords,  sJavaLiterals,  sStringSpecials);
-    private static Scheme mSchemeBatch = new Scheme("Batch", false, ":",  null, "rem ", null, null,    sBatchKeywords, sBatchLiterals, sBatchSpecials);
-    private static Scheme mSchemeConf  = new Scheme("Conf",  true,  null, null, "#",    null, null,    null,           null,           sConfSpecials);
-    private static Scheme mSchemeXml   = new Scheme("Xml",   true,  null, null, null,   "<!--", "-->", null,           null,           sStringSpecials);
+    private static Scheme mSchemeCPP   = new Scheme("C/C++", true,  "_",  "_",  "#",  "//",   "/*", "*/",    sCppKeywords,   sCppLiterals,   sStringSpecials);
+    private static Scheme mSchemeJava  = new Scheme("Java",  true,  "_",  "_",  "@",  "//",   "/*", "*/",    sJavaKeywords,  sJavaLiterals,  sStringSpecials);
+    private static Scheme mSchemeBatch = new Scheme("Batch", false, ":",  "_",  null, "rem ", null, null,    sBatchKeywords, sBatchLiterals, sBatchSpecials);
+    private static Scheme mSchemeConf  = new Scheme("Conf",  true,  null, null, null, "#",    null, null,    null,           null,           sConfSpecials);
+    private static Scheme mSchemeXml   = new Scheme("Xml",   true,  null, ".:", "<",  null,   "<!--", "-->", null,           null,           sStringSpecials);
         
     static Scheme getScheme(android.net.Uri uri)
     {
         if (uri == null)
             return null;
-        String ext = Utils.getFileExtension(uri);
+        String ext = Utils.getFileExtension(uri).toLowerCase();;
         switch (ext)
         {
+        case "cpp":
+        case "cxx":
+        case "cc":
+        case "c":
+        case "h":
+            return mSchemeCPP;
+            
         case "java":
             return mSchemeJava;
             
@@ -115,6 +141,7 @@ class SyntaxHighlighter
         
         Tokenizer t = new Tokenizer(mEditable.subSequence(start, end), mComp);
         t.mTokenStart = mScheme.tokenStart;
+        t.mTokenChars = mScheme.tokenChars;
         t.mLineComment = mScheme.lineComment;
         t.mSpecials = mScheme.specials;
         if (mScheme.streamCommentBegin != null && mScheme.streamCommentEnd != null)
@@ -142,9 +169,11 @@ class SyntaxHighlighter
             case UNKNOWN:
                 if (mScheme.preProcessor != null && mComp.compare(t.get(), mScheme.preProcessor) == 0)
                     span = new android.text.style.ForegroundColorSpan(0xFFFF6820);
+                break;
                     
             case TOKEN:
-                if (t.mTokenStart != null && t.mTokenStart.indexOf(t.get().charAt(0)) >= 0)
+                //if (t.mTokenStart != null && t.mTokenStart.indexOf(t.get().charAt(0)) >= 0)
+                if (t.get().charAt(0) == ':')
                     span = new android.text.style.ForegroundColorSpan(0xFFFFFF00);
                 else if (mScheme.preProcessor != null && mComp.compare(lastToken, mScheme.preProcessor) == 0)
                     span = new android.text.style.ForegroundColorSpan(0xFFFF6820);
@@ -174,6 +203,7 @@ class SyntaxHighlighter
                     }
                     else if (mComp.compare(op, "%") == 0 || mComp.compare(op, "!") == 0)
                     {
+                        color = 0xFF007F7F;
                         skipws = false;
                     }
                     else if (mComp.compare(op, "[") == 0)

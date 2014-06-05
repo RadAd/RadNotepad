@@ -8,6 +8,7 @@ public class Tokenizer
     private int j = 0;
     
     String mTokenStart = "_";   // An array of individual chars
+    String mTokenChars = "_";   // An array of individual chars
     String mLineComment = "//";
     String[] mSpecials = { "\"", "'", "/*", "*/" };
     char mEscape = '\\';
@@ -52,13 +53,13 @@ public class Tokenizer
             } while (c != '\n' && c != 0);
             return Type.LINE_COMMENT;
         }
-        else if ((mTokenStart != null && mTokenStart.indexOf(c) >= 0) || Character.isAlphabetic(c))
+        else if (in(mTokenStart, c) || Character.isAlphabetic(c))
         {
             j = i;
             do
             {
                 c = charAt(++j);
-            } while (c == '_' || Character.isAlphabetic(c) || Character.isDigit(c));
+            } while (in(mTokenChars, c) || Character.isAlphabetic(c) || Character.isDigit(c));
             return Type.TOKEN;
         }
         else if (Character.isDigit(c))
@@ -117,6 +118,11 @@ public class Tokenizer
     public int getEnd()
     {
         return j;
+    }
+    
+    private boolean in(String s, char c)
+    {
+        return s != null && s.indexOf(c) >= 0;
     }
     
     private char charAt(int i)
