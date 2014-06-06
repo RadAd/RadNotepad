@@ -136,7 +136,7 @@ class SyntaxHighlighter
     private static Scheme mSchemeJava  = new Scheme("Java",  true,  "_",  "_",  "@",  "//",   sJavaKeywords,  sJavaLiterals,  sCppSpecialPairs);
     private static Scheme mSchemeBatch = new Scheme("Batch", false, "_",  "_",  null, "rem ", sBatchKeywords, sBatchLiterals, sBatchSpecialPairs);
     private static Scheme mSchemeConf  = new Scheme("Conf",  true,  null, null, null, "#",    null,           null,           sConfSpecialPairs);
-    private static Scheme mSchemeXml   = new Scheme("Xml",   true,  null, ".:", "<",  null,   null,           null,           sXmlSpecialPairs);
+    private static Scheme mSchemeXml   = new Scheme("Xml",   true,  null, ".:", null, null,   null,           null,           sXmlSpecialPairs);
         
     static Scheme getScheme(android.net.Uri uri)
     {

@@ -243,9 +243,9 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             mEdit.setHorizontallyScrolling(!mWordWrap);
             break;
                 
-        case R.id.syntax_highlight:
-            highlightSyntax();
-            break;
+        //case R.id.syntax_highlight:
+            //highlightSyntax();
+            //break;
             
         case R.id.action_le_windows:
             mLineEnding = LE_WINDOWS;
