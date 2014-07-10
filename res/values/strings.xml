@@ -23,4 +23,7 @@
     <string name="status_le_unix_short">LF</string>
     <string name="status_le_mac_short">CR</string>
     <string name="action_line_ending">Line ending...</string>
+    <string name="select_all">Select all</string>
+    <string name="selection_upper_case">Upper case</string>
+    <string name="selection_lower_case">Lower case</string>
 </resources>

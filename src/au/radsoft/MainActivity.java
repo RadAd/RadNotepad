@@ -11,7 +11,7 @@ import android.text.*;
 
 import static au.radsoft.utils.CharSequenceUtils.*;
 
-public class MainActivity extends Activity implements EditText.SelectionChangedListener, TextWatcher
+public class MainActivity extends Activity implements EditText.SelectionChangedListener, TextWatcher, ActionMode.Callback
 {
     static final int ACTIVITY_OPEN_FILE = 1;
     static final int ACTIVITY_SAVE_FILE = 2;
@@ -21,15 +21,18 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     static final String LE_MAC = "\r";
     
     EditText mEdit;
+    
     TextView mStatusScheme;
     TextView mStatusLineEnding;
     TextView mStatusCursor;
-    UndoRedoHelper mUndoRedoHelper;
+    
+    UndoRedoHelper mUndoRedoHelper;    
     ShareActionProvider myShareActionProvider;
     boolean mWordWrap = false;
     String mLineEnding = LE_WINDOWS;
     SyntaxHighlighter.Scheme mScheme = null;
     long mLastModified = -1;
+    ActionMode mActionMode = null;
     
     Uri mUri;
     
@@ -42,18 +45,10 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         mEdit = (EditText) findViewById(R.id.edit);
         mEdit.setHorizontallyScrolling(!mWordWrap); // bug when set in xml
         mUndoRedoHelper = new UndoRedoHelper(mEdit);
-        mEdit.addTextChangedListener(new TextWatcher()
-            {
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                public void afterTextChanged(Editable s) {}
-                public void onTextChanged(CharSequence s, int start, int before, int count)
-                {
-                    invalidateOptionsMenu();
-                }
-            }
-        );
         mEdit.addSelectionChangedListener(this);
         mEdit.addTextChangedListener(this);
+        mEdit.setCustomSelectionActionModeCallback(this);
+        registerForContextMenu(mEdit);
         
         mStatusScheme = (TextView) findViewById(R.id.scheme);
         mStatusLineEnding = (TextView) findViewById(R.id.line_ending);
@@ -155,8 +150,9 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        getMenuInflater().inflate(R.menu.options, menu);
-        getMenuInflater().inflate(R.menu.line_ending, menu.addSubMenu(R.string.action_line_ending));
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.options, menu);
+        inflater.inflate(R.menu.line_ending, menu.addSubMenu(R.string.action_line_ending));
         
         myShareActionProvider = (ShareActionProvider) menu.findItem(R.id.action_share).getActionProvider();
         updateShareActionProvider();
@@ -264,6 +260,21 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             updateStatusLineEnding();
             mUndoRedoHelper.markSaved(false);
             break;
+            
+        case R.id.select_all:
+            mEdit.selectAll();
+            break;
+            
+        case R.id.selection_upper_case:
+            replaceSelectedText(getSelectedText().toString().toUpperCase());
+            break;
+            
+        case R.id.selection_lower_case:
+            replaceSelectedText(getSelectedText().toString().toLowerCase());
+            break;
+            
+        default:
+            return false;
         }
         
         return true;
@@ -282,19 +293,19 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         Enable(menu.findItem(R.id.action_open_with), uri != null);
         Enable(menu.findItem(R.id.action_undo), mUndoRedoHelper.getCanUndo());
         Enable(menu.findItem(R.id.action_redo), mUndoRedoHelper.getCanRedo());
-        menu.findItem(R.id.action_wrap).setChecked(mWordWrap);
+        Check(menu.findItem(R.id.action_wrap), mWordWrap);
         switch (mLineEnding)
         {
         case LE_WINDOWS:
-            menu.findItem(R.id.action_le_windows).setChecked(true);
+            Check(menu.findItem(R.id.action_le_windows), true);
             break;
             
         case LE_UNIX:
-            menu.findItem(R.id.action_le_unix).setChecked(true);
+            Check(menu.findItem(R.id.action_le_unix), true);
             break;
             
         case LE_MAC:
-            menu.findItem(R.id.action_le_mac).setChecked(true);
+            Check(menu.findItem(R.id.action_le_mac), true);
             break;
         }
         
@@ -335,7 +346,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     public void onTextChanged(CharSequence s, int start, int before, int count)
     {
         Layout layout = mEdit.getLayout();
-        if (layout != null)
+        if (layout != null && mScheme != null)
         {
             int lineBegin = layout.getLineForOffset(start);
             int lineEnd = layout.getLineForOffset(start + count);
@@ -346,16 +357,39 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             int lineBeginOffset = layout.getLineStart(lineBegin);
             int lineEndOffset = layout.getLineEnd(lineEnd);
             
-            if (mScheme != null)
-            {
-                SyntaxHighlighter sh = new SyntaxHighlighter(mEdit.getText(), mScheme);
-                sh.highlight(lineBeginOffset, lineEndOffset);
-            }
-            else
-            {
-                SyntaxHighlighter.remove(mEdit.getText(), lineBeginOffset, lineEndOffset);
-            }
+            SyntaxHighlighter sh = new SyntaxHighlighter(mEdit.getText(), mScheme);
+            sh.highlight(lineBeginOffset, lineEndOffset);
         }
+        
+        invalidateOptionsMenu();
+    }
+    
+    @Override //ActionMode.Callback
+    public boolean onActionItemClicked(ActionMode mode, MenuItem item)
+    {
+        return onOptionsItemSelected(item);
+    }
+    
+    @Override //ActionMode.Callback
+    public boolean onCreateActionMode(ActionMode mode, Menu menu)
+    {
+        MenuInflater inflater = /*mode.*/getMenuInflater();
+        inflater.inflate(R.menu.selection, menu);
+        menu.removeItem(android.R.id.selectAll);
+        return true;
+    }
+    
+    @Override //ActionMode.Callback
+    public void onDestroyActionMode(ActionMode mode)
+    {
+        if (mActionMode == mode)
+            mActionMode = null;
+    }
+    
+    @Override //ActionMode.Callback
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu)
+    {
+        return onPrepareOptionsMenu(menu);
     }
     
     void checkSave(String msg, final Runnable cb)
@@ -384,6 +418,29 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         }
         else
             cb.run();
+    }
+    
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo menuInfo)
+    {
+        if (view == mEdit)
+        {
+            if (false)  // If use popup menu
+            {
+                MenuInflater inflater = getMenuInflater();
+                inflater.inflate(R.menu.selection, menu);
+            }
+            else if (true) // If use action mode
+            {
+                ActionMode.Callback cb = mEdit.getCustomSelectionActionModeCallback();
+                if (cb != null && mActionMode == null)
+                {
+                    mActionMode = mEdit.startActionMode(cb);
+                    mEdit.setSelected(true);
+                }
+            }
+        }
+        super.onCreateContextMenu(menu, view, menuInfo);
     }
     
     void updateStatusLineEnding()
@@ -417,10 +474,21 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     
     static void Enable(MenuItem mi, boolean enable)
     {
-        mi.setEnabled(enable);
-        android.graphics.drawable.Drawable icon = mi.getIcon();
-        if (icon != null)
-            icon.setAlpha(enable ? 255 : 130);
+        if (mi != null)
+        {
+            mi.setEnabled(enable);
+            android.graphics.drawable.Drawable icon = mi.getIcon();
+            if (icon != null)
+                icon.setAlpha(enable ? 255 : 130);
+        }
+    }
+    
+    static void Check(MenuItem mi, boolean enable)
+    {
+        if (mi != null)
+        {
+            mi.setChecked(enable);
+        }
     }
     
     void updateShareActionProvider()
@@ -510,8 +578,31 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     
     void toast(String msg)
     {
-        Toast toast = Toast.makeText(this, msg,Toast.LENGTH_LONG);
+        Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
         toast.show();
+    }
+    
+    CharSequence getSelectedText()
+    {
+        int st = mEdit.getSelectionStart();
+        int en = mEdit.getSelectionEnd();
+        Editable e = mEdit.getText();
+        return e.subSequence(st, en);
+    }
+    
+    void replaceSelectedText(CharSequence s)
+    {
+        final int st = mEdit.getSelectionStart();
+        final int en = mEdit.getSelectionEnd();
+        Editable e = mEdit.getText();
+        e.replace(st, en, s);
+        mEdit.post(new Runnable() {
+                @Override
+                public void run()
+                {
+                    mEdit.setSelection(st, en);
+                }
+            });
     }
     
     private class LoadAsyncTask extends ProgressDialogAsyncTask<Uri, CharSequence[]>
