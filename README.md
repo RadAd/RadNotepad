@@ -6,7 +6,7 @@ A simple text editor for Android
 Features
 --------
 - Edit any file
-- Multi-levl undo
+- Multi-level undo
 - Syntax color (c++, java, xml)
 - Change case
 
