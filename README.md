@@ -3,6 +3,13 @@ RadNotepad
 
 A simple text editor for Android
 
+Features
+--------
+- Edit any file
+- Multi-levl undo
+- Syntax color (c++, java, xml)
+- Change case
+
 Known Issues
 ------------
 - tab characters shown as a single character in EditText
@@ -16,12 +23,10 @@ TODO
 - Show read only status
 - Determine encoding and save with appropriate encoding
 - Add a search history or at least start with last search
-- Syntax color
 - Detect file changed when attempting to save
 
 TODO Editing Selection
 ----------------------
 - Indent selection
 - Comment selection
-- Change case
 - Google search
