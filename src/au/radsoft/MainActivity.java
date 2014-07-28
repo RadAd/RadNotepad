@@ -158,9 +158,9 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         updateShareActionProvider();
         
         final MenuItem menuSearch = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) menuSearch.getActionView();
+        au.radsoft.widget.TextSearchView searchView = (au.radsoft.widget.TextSearchView) menuSearch.getActionView();
         searchView.setQueryHint("Search in file");
-        SearchViewHelper.attach(searchView, mEdit);
+        searchView.attach(mEdit);
         
         return super.onCreateOptionsMenu(menu);
     }

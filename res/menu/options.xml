@@ -26,7 +26,7 @@
           android:icon="@drawable/ic_action_search"
           android:title="@string/action_search"
           android:showAsAction="ifRoom|collapseActionView"
-          android:actionViewClass="android.widget.SearchView" />
+          android:actionViewClass="au.radsoft.widget.TextSearchView" />
     <item android:id="@+id/action_undo"
           android:icon="@drawable/icon_undo"
           android:title="@string/action_undo"
