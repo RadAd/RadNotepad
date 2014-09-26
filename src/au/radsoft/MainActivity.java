@@ -623,7 +623,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 mDlg.setMessage("Loading " + uris[i].getLastPathSegment());
                 try
                 {
-                    mFileEncoding = Utils.ifNull(Utils.detectEncoding(uris[i]), "UTF-8");
+                    mFileEncoding = Utils.ifNull(Utils.detectEncoding(getContentResolver(), uris[i]), "UTF-8");
                     InputStream is = getContentResolver().openInputStream(uris[i]);
                     try (BufferedReader br = new BufferedReader(new InputStreamReader(is, mFileEncoding)))
                     {

@@ -164,6 +164,8 @@ class SyntaxHighlighter
             return mSchemeConf;
             
         case "xml":
+        case "html":
+        case "htm":
             return mSchemeXml;
             
         default:
