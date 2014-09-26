@@ -21,6 +21,11 @@ class Utils
         return mtm.getMimeTypeFromExtension(extension);
     }
     
+    public static String detectEncoding(Uri uri)
+    {
+        return "UTF-8";
+    }
+    
     public static <T> T ifNull(T input, T ifnull)
     {
         return input == null ? ifnull : input;

@@ -23,6 +23,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     EditText mEdit;
     
     TextView mStatusScheme;
+    TextView mEncoding;
     TextView mStatusLineEnding;
     TextView mStatusCursor;
     
@@ -51,9 +52,11 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         registerForContextMenu(mEdit);
         
         mStatusScheme = (TextView) findViewById(R.id.scheme);
+        mEncoding = (TextView) findViewById(R.id.encoding);
         mStatusLineEnding = (TextView) findViewById(R.id.line_ending);
         mStatusCursor = (TextView) findViewById(R.id.cursor);
         
+        mEncoding.setText("UTF-8");
         onSelectionChanged(mEdit.getSelectionStart(), mEdit.getSelectionEnd());
         
         Intent intent = getIntent();
@@ -532,7 +535,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     void save()
     {
         if (mUri != null)
-            new SaveAsyncTask().execute(mUri);
+            new SaveAsyncTask(mEncoding.getText().toString()).execute(mUri);
         else
             saveChooser();
     }
@@ -608,6 +611,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     private class LoadAsyncTask extends ProgressDialogAsyncTask<Uri, CharSequence[]>
     {
         private String mFileLineEnding = LE_WINDOWS;
+        private String mFileEncoding = "UTF-8";
         
         @Override
         protected CharSequence[] doInBackground(Uri... uris)
@@ -619,8 +623,9 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 mDlg.setMessage("Loading " + uris[i].getLastPathSegment());
                 try
                 {
+                    mFileEncoding = Utils.ifNull(Utils.detectEncoding(uris[i]), "UTF-8");
                     InputStream is = getContentResolver().openInputStream(uris[i]);
-                    try (BufferedReader br = new BufferedReader(new InputStreamReader(is)))
+                    try (BufferedReader br = new BufferedReader(new InputStreamReader(is, mFileEncoding)))
                     {
                         StringBuffer sb = new StringBuffer();
                         
@@ -682,6 +687,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             mUndoRedoHelper.clearHistory();
             mUndoRedoHelper.markSaved(true);
             mLastModified = Utils.getLastModified(mUri);
+            mEncoding.setText(mFileEncoding);
             //highlightSyntax();
             super.onPostExecute(result);
         }
@@ -689,6 +695,13 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     
     private class SaveAsyncTask extends ProgressDialogAsyncTask<Uri, Void>
     {
+        private String mFileEncoding;
+        
+        SaveAsyncTask(String fileEncoding)
+        {
+            mFileEncoding = fileEncoding;
+        }
+        
         @Override
         protected Void doInBackground(Uri... uris)
         {
@@ -698,7 +711,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 try
                 {
                     OutputStream os = getContentResolver().openOutputStream(uris[i]);
-                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os)))
+                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, mFileEncoding)))
                     {
                         CharSequence cs = mEdit.getText();
                         

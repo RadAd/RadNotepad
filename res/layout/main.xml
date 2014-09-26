@@ -37,6 +37,17 @@
             android:longClickable="false" />
             
         <TextView
+            android:id="@+id/encoding"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dp"
+            android:lines="1"
+            android:typeface="monospace"
+            android:scrollHorizontally="true"
+            android:clickable="false"
+            android:longClickable="false" />
+            
+        <TextView
             android:id="@+id/line_ending"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
