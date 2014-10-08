@@ -2,6 +2,7 @@ package au.radsoft;
 
 import android.text.Editable;
 import au.radsoft.utils.CharSequenceUtils;
+import au.radsoft.utils.Tokenizer;
 
 // TODO
 // xml - distinguish between attributes and text ie inside/outside of </>

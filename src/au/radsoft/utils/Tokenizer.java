@@ -1,4 +1,4 @@
-package au.radsoft;
+package au.radsoft.utils;
 
 public class Tokenizer
 {
@@ -7,11 +7,11 @@ public class Tokenizer
     private int i = 0;
     private int j = 0;
     
-    String mTokenStart = "_";   // An array of individual chars
-    String mTokenChars = "_";   // An array of individual chars
-    String mLineComment = "//";
-    String[] mSpecials = { "\"", "'", "/*", "*/" };
-    char mEscape = '\\';
+    public String mTokenStart = "_";   // An array of individual chars
+    public String mTokenChars = "_";   // An array of individual chars
+    public String mLineComment = "//";
+    public String[] mSpecials = { "\"", "'", "/*", "*/" };
+    public char mEscape = '\\';
     
     public enum Type { WHITE_SPACE, TOKEN, NUMBER, LINE_COMMENT, SPECIAL, UNKNOWN, END };
     
@@ -21,6 +21,11 @@ public class Tokenizer
         this.comp = comp;
         if (mSpecials != null)
             java.util.Arrays.sort(mSpecials);
+    }
+    
+    public Tokenizer(CharSequence s, boolean caseSensitive)
+    {
+        this(s, caseSensitive ? new CharSequenceUtils.Comparator() : new CharSequenceUtils.ComparatorIgnoreCase());
     }
     
     public Type getNextToken(boolean skipws)
