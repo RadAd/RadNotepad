@@ -30,18 +30,20 @@ public class Tokenizer
     
     public Type getNextToken(boolean skipws)
     {
-        i = j - 1;
-        char c = 0;
-        do
+        i = j;
+        
+        char c = charAt(j);
+        while (Character.isWhitespace(c))
         {
-            c = charAt(++i);
-        } while (Character.isWhitespace(c));
+            c = charAt(++j);
+        };
         
         if (!skipws && i != j)
         {
-            j = i;
             return Type.WHITE_SPACE;
         }
+        
+        i = j;
         
         String op = null;
         if (i >= s.length())
@@ -72,6 +74,15 @@ public class Tokenizer
             } while (in(mTokenChars, c) || Character.isAlphabetic(c) || Character.isDigit(c));
             return Type.TOKEN;
         }
+        else if (is(i, "0x"))
+        {
+            j = i + 1;
+            do
+            {
+                c = charAt(++j);
+            } while (Character.isDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'));
+            return Type.NUMBER;
+        }
         else if (Character.isDigit(c))
         {
             j = i;
@@ -87,15 +98,6 @@ public class Tokenizer
                     c = charAt(++j);
                 } while (Character.isDigit(c));
             }
-            return Type.NUMBER;
-        }
-        else if (is(i, "0x"))
-        {
-            j = i + 1;
-            do
-            {
-                c = charAt(++j);
-            } while (Character.isDigit(c) || (c > 'a' && c <= 'f') || (c > 'A' && c <= 'F'));
             return Type.NUMBER;
         }
         else
