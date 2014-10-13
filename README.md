@@ -8,25 +8,29 @@ Features
 - Edit any file
 - Multi-level undo
 - Syntax color (c++, java, xml)
+- Full support for line ending
+- Full support for encoding
 - Change case
 
 Known Issues
 ------------
 - tab characters shown as a single character in EditText
 - tab key changes focus instead of been captured by EditText
-- currently only supports utf8 encoding
 - search selection is cleared when closing search window
 - search is case-sensitive
 
 TODO
 ----
 - Show read only status
-- Determine encoding and save with appropriate encoding
 - Add a search history or at least start with last search
 - Detect file changed when attempting to save
+- Implement flick scrolling
+- Use encoding if passed in
+- More syntax higlighting languages
 
 TODO Editing Selection
 ----------------------
 - Indent selection
 - Comment selection
 - Google search
+- Share via

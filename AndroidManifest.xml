@@ -23,49 +23,12 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter
-                android:label="RN Text File Editor" >
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.EDIT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:scheme="file"
-                    android:host="*"
-                    android:mimeType="text/*" />
-            </intent-filter>
-            <intent-filter
-                android:label="RN Edit as text" >
-                <action android:name="android.intent.action.VIEW" />
-                <action android:name="android.intent.action.EDIT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:scheme="file"
-                    android:host="*"
-                    android:mimeType="*/*" />
-            </intent-filter>
-            <intent-filter
-                android:label="RN Batch File Editor" >
-                <action android:name="android.intent.action.VIEW" />
-                <action android:name="android.intent.action.EDIT" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:scheme="file"
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.bat" />
-            </intent-filter>
-            <intent-filter
-                android:label="RN Log File Editor" >
-                <action android:name="android.intent.action.VIEW" />
-                <action android:name="android.intent.action.EDIT" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:scheme="file"
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.log" />
+                <data android:mimeType="text/*" />
             </intent-filter>
         </activity>
     </application>
