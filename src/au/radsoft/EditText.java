@@ -42,5 +42,15 @@ public class EditText extends android.widget.EditText
             for (SelectionChangedListener l : listeners)
                 l.onSelectionChanged(selStart, selEnd);        
         }
+        
+        android.widget.ScrollView parent = (android.widget.ScrollView) getParent();
+        if (parent != null)
+        {
+            android.text.Layout layout = getLayout();
+            int line = layout.getLineForOffset(selStart);
+            float x = layout.getPrimaryHorizontal(selStart);
+            float y = layout.getLineBaseline(line) + layout.getLineAscent(line);
+            parent.smoothScrollTo((int) x, (int) y);
+        }
     }
 }
