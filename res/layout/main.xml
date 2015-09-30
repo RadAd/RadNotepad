@@ -5,19 +5,26 @@
     android:gravity="center"
     android:orientation="vertical" >
 
-    <au.radsoft.EditText
-        android:id="@+id/edit"
+    <ScrollView
+        android:id="@+id/editscroll"
         android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:gravity="left|top"
+        android:layout_height="fill_parent"
         android:layout_weight="1"
-        android:typeface="monospace"
-        android:scrollbars="vertical"
-        android:scrollHorizontally="true"
-        android:clickable="false"
-        android:longClickable="false"
-        android:imeOptions="actionNone"
-        android:inputType="text|textNoSuggestions|textMultiLine" />
+        android:gravity="center" >
+    
+        <au.radsoft.EditText
+            android:id="@+id/edit"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:gravity="left|top"
+            android:typeface="monospace"
+            android:scrollHorizontally="true"
+            android:clickable="false"
+            android:longClickable="false"
+            android:imeOptions="actionNone"
+            android:inputType="text|textNoSuggestions|textMultiLine" />
+            
+    </ScrollView>
 
     <LinearLayout
         android:layout_width="fill_parent"
