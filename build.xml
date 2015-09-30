@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="RadNotepad" default="help">
+<project name="RadNotepad" default="debug">
 
     <property environment="env"/>
 
