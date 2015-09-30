@@ -107,9 +107,9 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
     
     private boolean findHighlight(String query, int o)
     {
-        int i = find(mTextView.getText(), o, query);
+        int i = findIgnoreCase(mTextView.getText(), o, query);
         if (i == -1 && o != 0)
-            i = find(mTextView.getText(), 0, query);
+            i = findIgnoreCase(mTextView.getText(), 0, query);
         if (i != -1)
         {
             mTextView.setSelection(i, i + query.length());

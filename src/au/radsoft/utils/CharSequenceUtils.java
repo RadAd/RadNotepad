@@ -15,6 +15,18 @@ public class CharSequenceUtils
         return -1;
     }
     
+    public static int findIgnoreCase(CharSequence cs, int o, char c)
+    {
+        c = Character.toUpperCase(c);
+        while (o < cs.length())
+        {
+            if (Character.toUpperCase(cs.charAt(o)) == c)
+                return o;
+            ++o;
+        }
+        return -1;
+    }
+    
     public static int find(CharSequence cs, int o, String search)
     {
         if (search.length() == 0)
@@ -25,6 +37,22 @@ public class CharSequenceUtils
                 return -1;
             CharSequence sub = cs.subSequence(o, o + search.length());
             if (search.contentEquals(sub))
+                return o;
+            ++o;
+        }
+        return -1;
+    }
+    
+    public static int findIgnoreCase(CharSequence cs, int o, String search)
+    {
+        if (search.length() == 0)
+            return -1;
+        while ((o = findIgnoreCase(cs, o, search.charAt(0))) != -1)
+        {
+            if ((o + search.length()) > cs.length())
+                return -1;
+            CharSequence sub = cs.subSequence(o, o + search.length());
+            if (compareIgnoreCase(search, sub) == 0)
                 return o;
             ++o;
         }
@@ -113,3 +141,4 @@ public class CharSequenceUtils
         }
     }
 }
+
