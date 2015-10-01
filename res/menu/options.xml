@@ -28,11 +28,11 @@
           android:showAsAction="ifRoom|collapseActionView"
           android:actionViewClass="au.radsoft.widget.TextSearchView" />
     <item android:id="@+id/action_undo"
-          android:icon="@drawable/icon_undo"
+          android:icon="@drawable/ic_action_undo"
           android:title="@string/action_undo"
           android:showAsAction="always" />
     <item android:id="@+id/action_redo"
-          android:icon="@drawable/icon_redo"
+          android:icon="@drawable/ic_action_redo"
           android:title="@string/action_redo"
           android:showAsAction="ifRoom" />
     <item android:id="@+id/action_wrap"
