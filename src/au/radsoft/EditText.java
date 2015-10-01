@@ -1,7 +1,9 @@
 package au.radsoft;
 
 import android.content.Context;
+import android.text.Layout;
 import android.util.AttributeSet;
+import android.widget.ScrollView;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -43,14 +45,18 @@ public class EditText extends android.widget.EditText
                 l.onSelectionChanged(selStart, selEnd);        
         }
         
-        android.widget.ScrollView parent = (android.widget.ScrollView) getParent();
+        ScrollView parent = (ScrollView) getParent();
         if (parent != null)
         {
-            android.text.Layout layout = getLayout();
+            Layout layout = getLayout();
             int line = layout.getLineForOffset(selStart);
-            float x = layout.getPrimaryHorizontal(selStart);
-            float y = layout.getLineBaseline(line) + layout.getLineAscent(line);
-            parent.smoothScrollTo((int) x, (int) y);
+            android.graphics.Rect r = new android.graphics.Rect();
+            layout.getLineBounds(line, r);
+            r.left = (int) layout.getPrimaryHorizontal(selStart);
+            if (r.top < parent.getScrollY())
+                parent.smoothScrollTo(r.left, r.top);
+            else if (r.bottom > (parent.getScrollY() + parent.getHeight()))
+                parent.smoothScrollTo(r.left, r.bottom - parent.getHeight());
         }
     }
 }

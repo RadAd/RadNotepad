@@ -6,15 +6,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import android.util.Log;
+//import android.util.Log;
 
 import au.radsoft.R;
 import static au.radsoft.utils.CharSequenceUtils.*;
@@ -45,51 +43,14 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
         LinearLayout l = (LinearLayout) getChildAt(0);
  
         LayoutInflater layoutInflater = LayoutInflater.from(getContext());
-        if (true)
-        {
-            View v = layoutInflater.inflate(R.layout.search_view_buttons, l, false);
-            l.addView(v);
-            
-            View back = findViewById(R.id.search_back);
-            View forward = findViewById(R.id.search_forward);
-            
-            back.setOnClickListener(this);
-            forward.setOnClickListener(this);
-            
-            //if (v instanceof ViewGroup)
-                //captureClickable((ViewGroup) v);
-        }
-        else
-        {
-            View nv = layoutInflater.inflate(R.layout.search_view_buttons, l, false);
-            ViewGroup vg = null;
-            if (vg != null)
-            {
-                for (int i = 0; i < vg.getChildCount(); ++i)
-                {
-                    View v = vg.getChildAt(i);
-                    l.addView(v);
-                }
-                captureClickable(vg);
-            }
-        }
+        View v = layoutInflater.inflate(R.layout.search_view_buttons, l, false);
+        l.addView(v);
         
-        //if (v instanceof ViewGroup)
-            //captureClickable((ViewGroup) v);
-    }
-    
-    private void captureClickable(ViewGroup vg)
-    {
-        for (int i = 0; i < vg.getChildCount(); ++i)
-        {
-            View v = vg.getChildAt(i);
-            
-            if (v.isClickable())
-                v.setOnClickListener(this);
-            
-            if (v instanceof ViewGroup)
-                captureClickable((ViewGroup) v);
-        }
+        View back = findViewById(R.id.search_back);
+        View forward = findViewById(R.id.search_forward);
+        
+        back.setOnClickListener(this);
+        forward.setOnClickListener(this);
     }
     
     public void attach(EditText textView)
@@ -107,7 +68,6 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
     @Override // from View.OnClickListener
     public void onClick(View v)
     {
-        //toast(String.format("Click '%d'", v.getId()));
         CharSequence query = getQuery();
         if (query.length() > 0)
         {
@@ -116,14 +76,14 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
             case R.id.search_forward:
                 if (!findHighlight(query, mTextView.getSelectionEnd(), true))
                 {
-                    toast(String.format("'%s' not found", query));
+                    toast("'%s' not found", query);
                 }
                 break;
                 
             case R.id.search_back:
                 if (!findHighlight(query, mTextView.getSelectionStart() - query.length(), false))
                 {
-                    toast(String.format("'%s' not found", query));
+                    toast("'%s' not found", query);
                 }
                 break;
             }
@@ -185,7 +145,7 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
         //Log.i(_tag, String.format("onQueryTextSubmit: '%s'", query));
         if (!findHighlight(query, mTextView.getSelectionEnd(), true))
         {
-            toast(String.format("'%s' not found", query));
+            toast("'%s' not found", query);
         }
         return true;
     }
@@ -203,12 +163,8 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
         else
         {
             i = lastIndexOfIgnoreCase(text, query, o);
-            Log.i(_tag, String.format("lastIndexOfIgnoreCase: %d %d", o, i));
             if (i == -1)
-            {
                 i = lastIndexOfIgnoreCase(text, query);
-                Log.i(_tag, String.format("lastIndexOfIgnoreCase2: %d %d", o, i));
-            }
         }
         
         if (i != -1)
@@ -225,8 +181,9 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
         }
     }
     
-    private void toast(String msg)
+    private void toast(String fmt, Object... args)
     {
+        String msg = String.format(fmt, args);
         Toast toast = Toast.makeText(getContext(), msg, Toast.LENGTH_LONG);
         toast.show();
     }
