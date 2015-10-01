@@ -4,8 +4,14 @@ public class CharSequenceUtils
 {
     private CharSequenceUtils() { }
     
-    public static int find(CharSequence cs, int o, char c)
+    public static int indexOf(CharSequence cs, char c)
     {
+        return indexOf(cs, c, 0);
+    }
+    
+    public static int indexOf(CharSequence cs, char c, int start)
+    {
+        int o = start;
         while (o < cs.length())
         {
             if (cs.charAt(o) == c)
@@ -15,8 +21,14 @@ public class CharSequenceUtils
         return -1;
     }
     
-    public static int findIgnoreCase(CharSequence cs, int o, char c)
+    public static int indexOfIgnoreCase(CharSequence cs, char c)
     {
+        return indexOfIgnoreCase(cs, c, 0);
+    }
+    
+    public static int indexOfIgnoreCase(CharSequence cs, char c, int start)
+    {
+        int o = start;
         c = Character.toUpperCase(c);
         while (o < cs.length())
         {
@@ -27,27 +39,39 @@ public class CharSequenceUtils
         return -1;
     }
     
-    public static int find(CharSequence cs, int o, String search)
+    public static int indexOf(CharSequence cs, CharSequence search)
+    {
+        return indexOf(cs, search, 0);
+    }
+    
+    public static int indexOf(CharSequence cs, CharSequence search, int start)
     {
         if (search.length() == 0)
             return -1;
-        while ((o = find(cs, o, search.charAt(0))) != -1)
+        int o = start;
+        while ((o = indexOf(cs, search.charAt(0), o)) != -1)
         {
             if ((o + search.length()) > cs.length())
                 return -1;
             CharSequence sub = cs.subSequence(o, o + search.length());
-            if (search.contentEquals(sub))
+            if (compare(search, sub) == 0)
                 return o;
             ++o;
         }
         return -1;
     }
     
-    public static int findIgnoreCase(CharSequence cs, int o, String search)
+    public static int indexOfIgnoreCase(CharSequence cs, CharSequence search)
+    {
+        return indexOfIgnoreCase(cs, search, 0);
+    }
+    
+    public static int indexOfIgnoreCase(CharSequence cs, CharSequence search, int start)
     {
         if (search.length() == 0)
             return -1;
-        while ((o = findIgnoreCase(cs, o, search.charAt(0))) != -1)
+        int o = start;
+        while ((o = indexOfIgnoreCase(cs, search.charAt(0), o)) != -1)
         {
             if ((o + search.length()) > cs.length())
                 return -1;
@@ -55,6 +79,85 @@ public class CharSequenceUtils
             if (compareIgnoreCase(search, sub) == 0)
                 return o;
             ++o;
+        }
+        return -1;
+    }
+    
+    public static int lastIndexOf(CharSequence cs, char c)
+    {
+        return lastIndexOf(cs, c, cs.length() - 1);
+    }
+    
+    public static int lastIndexOf(CharSequence cs, char c, int last)
+    {
+        int o = last;
+        while (o >= 0)
+        {
+            if (cs.charAt(o) == c)
+                return o;
+            --o;
+        }
+        return -1;
+    }
+    
+    public static int lastIndexOfIgnoreCase(CharSequence cs, char c)
+    {
+        return lastIndexOf(cs, c, cs.length() - 1);
+    }
+    
+    public static int lastIndexOfIgnoreCase(CharSequence cs, char c, int last)
+    {
+        c = Character.toUpperCase(c);
+        int o = last;
+        while (o >= 0)
+        {
+            if (Character.toUpperCase(cs.charAt(o)) == c)
+                return o;
+            --o;
+        }
+        return -1;
+    }
+    
+    public static int lastIndexOf(CharSequence cs, CharSequence search)
+    {
+        return lastIndexOf(cs, search, cs.length() - search.length());
+    }
+    
+    public static int lastIndexOf(CharSequence cs, CharSequence search, int last)
+    {
+        if (search.length() == 0)
+            return -1;
+        int o = last;
+        if (o > (cs.length() - search.length()))
+            o = cs.length() - search.length();
+        while ((o = lastIndexOf(cs, search.charAt(0), o)) != -1)
+        {
+            CharSequence sub = cs.subSequence(o, o + search.length());
+            if (compare(search, sub) == 0)
+                return o;
+            --o;
+        }
+        return -1;
+    }
+    
+    public static int lastIndexOfIgnoreCase(CharSequence cs, CharSequence search)
+    {
+        return lastIndexOfIgnoreCase(cs, search, cs.length() - search.length());
+    }
+    
+    public static int lastIndexOfIgnoreCase(CharSequence cs, CharSequence search, int last)
+    {
+        if (search.length() == 0)
+            return -1;
+        int o = last;
+        if (o > (cs.length() - search.length()))
+            o = cs.length() - search.length();
+        while ((o = lastIndexOf(cs, search.charAt(0), o)) != -1)
+        {
+            CharSequence sub = cs.subSequence(o, o + search.length());
+            if (compareIgnoreCase(search, sub) == 0)
+                return o;
+            --o;
         }
         return -1;
     }
@@ -141,4 +244,3 @@ public class CharSequenceUtils
         }
     }
 }
-

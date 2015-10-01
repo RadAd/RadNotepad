@@ -2,17 +2,24 @@ package au.radsoft.widget;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import android.util.Log;
 
+import au.radsoft.R;
 import static au.radsoft.utils.CharSequenceUtils.*;
 
-public class TextSearchView extends SearchView implements SearchView.OnQueryTextListener
+public class TextSearchView extends SearchView implements SearchView.OnQueryTextListener, View.OnClickListener
 {
     private static String _tag = "TextSearchView";
     
@@ -23,12 +30,66 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
     {
         super(context);
         setOnQueryTextListener(this);
+        addExtraButtons();
     }
 
     public TextSearchView(Context context, AttributeSet attrs)
     {
         super(context, attrs);
         setOnQueryTextListener(this);
+        addExtraButtons();
+    }
+    
+    private void addExtraButtons()
+    {
+        LinearLayout l = (LinearLayout) getChildAt(0);
+ 
+        LayoutInflater layoutInflater = LayoutInflater.from(getContext());
+        if (true)
+        {
+            View v = layoutInflater.inflate(R.layout.search_view_buttons, l, false);
+            l.addView(v);
+            
+            View back = findViewById(R.id.search_back);
+            View forward = findViewById(R.id.search_forward);
+            
+            back.setOnClickListener(this);
+            forward.setOnClickListener(this);
+            
+            //if (v instanceof ViewGroup)
+                //captureClickable((ViewGroup) v);
+        }
+        else
+        {
+            View nv = layoutInflater.inflate(R.layout.search_view_buttons, l, false);
+            ViewGroup vg = null;
+            if (vg != null)
+            {
+                for (int i = 0; i < vg.getChildCount(); ++i)
+                {
+                    View v = vg.getChildAt(i);
+                    l.addView(v);
+                }
+                captureClickable(vg);
+            }
+        }
+        
+        //if (v instanceof ViewGroup)
+            //captureClickable((ViewGroup) v);
+    }
+    
+    private void captureClickable(ViewGroup vg)
+    {
+        for (int i = 0; i < vg.getChildCount(); ++i)
+        {
+            View v = vg.getChildAt(i);
+            
+            if (v.isClickable())
+                v.setOnClickListener(this);
+            
+            if (v instanceof ViewGroup)
+                captureClickable((ViewGroup) v);
+        }
     }
     
     public void attach(EditText textView)
@@ -41,6 +102,32 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
             mSpan = new android.text.style.BackgroundColorSpan(mTextView.getResources().getColor(android.R.color.holo_blue_light));
         else
             mSpan = null;
+    }
+    
+    @Override // from View.OnClickListener
+    public void onClick(View v)
+    {
+        //toast(String.format("Click '%d'", v.getId()));
+        CharSequence query = getQuery();
+        if (query.length() > 0)
+        {
+            switch (v.getId())
+            {
+            case R.id.search_forward:
+                if (!findHighlight(query, mTextView.getSelectionEnd(), true))
+                {
+                    toast(String.format("'%s' not found", query));
+                }
+                break;
+                
+            case R.id.search_back:
+                if (!findHighlight(query, mTextView.getSelectionStart() - query.length(), false))
+                {
+                    toast(String.format("'%s' not found", query));
+                }
+                break;
+            }
+        }
     }
     
     @Override
@@ -87,29 +174,43 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
     @Override // SearchView.OnQueryTextListener
     public boolean onQueryTextChange(String newText)
     {
-        Log.i(_tag, String.format("onQueryTextChange: '%s'", newText));
-        findHighlight(newText, mTextView.getSelectionStart());
+        //Log.i(_tag, String.format("onQueryTextChange: '%s'", newText));
+        findHighlight(newText, mTextView.getSelectionStart(), true);
         return true;
     }
     
     @Override // SearchView.OnQueryTextListener
     public boolean onQueryTextSubmit(String query)
     {
-        Log.i(_tag, String.format("onQueryTextSubmit: '%s'", query));
-        if (!findHighlight(query, mTextView.getSelectionEnd()))
+        //Log.i(_tag, String.format("onQueryTextSubmit: '%s'", query));
+        if (!findHighlight(query, mTextView.getSelectionEnd(), true))
         {
-            String msg = String.format("'%s' not found", query);
-            Toast toast = Toast.makeText(mTextView.getContext(), msg, Toast.LENGTH_LONG);
-            toast.show();
+            toast(String.format("'%s' not found", query));
         }
         return true;
     }
     
-    private boolean findHighlight(String query, int o)
+    private boolean findHighlight(CharSequence query, int o, boolean forwards)
     {
-        int i = findIgnoreCase(mTextView.getText(), o, query);
-        if (i == -1 && o != 0)
-            i = findIgnoreCase(mTextView.getText(), 0, query);
+        CharSequence text = mTextView.getText();
+        int i = -1;
+        if (forwards)
+        {
+            i = indexOfIgnoreCase(text, query, o);
+            if (i == -1 && o != 0)
+                i = indexOfIgnoreCase(text, query);
+        }
+        else
+        {
+            i = lastIndexOfIgnoreCase(text, query, o);
+            Log.i(_tag, String.format("lastIndexOfIgnoreCase: %d %d", o, i));
+            if (i == -1)
+            {
+                i = lastIndexOfIgnoreCase(text, query);
+                Log.i(_tag, String.format("lastIndexOfIgnoreCase2: %d %d", o, i));
+            }
+        }
+        
         if (i != -1)
         {
             mTextView.setSelection(i, i + query.length());
@@ -122,5 +223,11 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
             mTextView.getText().removeSpan(mSpan);
             return false;
         }
+    }
+    
+    private void toast(String msg)
+    {
+        Toast toast = Toast.makeText(getContext(), msg, Toast.LENGTH_LONG);
+        toast.show();
     }
 }

@@ -766,7 +766,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                         
                         int begin = 0;
                         int end = 0;
-                        while ((end = find(cs, begin, '\n')) != -1)
+                        while ((end = indexOf(cs, '\n', begin)) != -1)
                         {
                             CharSequence sub = cs.subSequence(begin, end);
                             bw.append(sub);
