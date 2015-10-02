@@ -39,9 +39,7 @@ public class UndoRedoHelper {
     }
 
     public void onRestoreInstanceState(Bundle state) {
-        mEditHistory = state.getParcelable(TAG + ".history");
-        if (mEditHistory == null)
-            mEditHistory = new EditHistory();
+        mEditHistory = Utils.ifNull((EditHistory) state.getParcelable(TAG + ".history"), mEditHistory);
     }
 
     public void addHistoryChangedListener(HistoryChangedListener o) {
@@ -66,13 +64,15 @@ public class UndoRedoHelper {
 
     public void clearHistory() {
         mEditHistory.clear();
+        onHistoryChanged();
     }
 
     public void markSaved(boolean saved) {
         if (saved)
             mEditHistory.mSaved = mEditHistory.getCurrent();
         else
-            mEditHistory.mSaved = null;
+            mEditHistory.mSaved = new EditItem(0, null, null);
+        onHistoryChanged();
     }
 
     public boolean isSaved() {
@@ -142,7 +142,7 @@ public class UndoRedoHelper {
 
         private int mmPosition = 0;
         private int mmMaxHistorySize = -1;
-        private EditItem mSaved = null;
+        private EditItem mSaved = new EditItem(0, null, null);
         private final LinkedList<EditItem> mmHistory = new LinkedList<EditItem>();
 
         private EditHistory() {
