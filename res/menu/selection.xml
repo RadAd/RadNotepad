@@ -3,14 +3,10 @@
     <item android:id="@+id/select_all"
           android:showAsAction="always"
           android:title="@android:string/selectAll" />
-    <item android:id="@+id/selection_upper_case"
+    <item android:id="@+id/selection_change_case"
           android:showAsAction="always"
-          android:icon="@drawable/edit_uppercase"
-          android:title="@string/selection_upper_case" />
-    <item android:id="@+id/selection_lower_case"
-          android:showAsAction="always"
-          android:icon="@drawable/edit_lowercase"
-          android:title="@string/selection_lower_case" />
+          android:icon="@drawable/ic_action_font_case"
+          android:title="@string/selection_change_case" />
     <item android:id="@+id/selection_share"
           android:showAsAction="always"
           android:icon="@drawable/ic_action_share"

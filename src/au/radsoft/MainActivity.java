@@ -286,12 +286,12 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             mEdit.selectAll();
             break;
 
-        case R.id.selection_upper_case:
-            replaceSelectedText(getSelectedText().toString().toUpperCase());
-            break;
-
-        case R.id.selection_lower_case:
-            replaceSelectedText(getSelectedText().toString().toLowerCase());
+        case R.id.selection_change_case:
+            {
+                CharSequence text = getSelectedText();
+                if (text.length() > 0)
+                    replaceSelectedText(Character.isUpperCase(text.charAt(0)) ? text.toString().toLowerCase() : text.toString().toUpperCase());
+            }
             break;
 
         case R.id.selection_share:
