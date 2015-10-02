@@ -18,22 +18,15 @@ import android.widget.Toast;
 import android.net.Uri;
 import android.text.Editable;
 import android.text.Layout;
-import android.text.TextWatcher;
 
 import java.io.File;
-import java.util.Map;
-
-import com.google.common.collect.Range;
-import radsoft.syntaxhighlighter.brush.Brush;
-import radsoft.syntaxhighlighter.SyntaxHighlighter;
-
-import static au.radsoft.utils.CharSequenceUtils.*;
 
 // TODO
 // Close search view when lose focus
 // Need to call onPrepareOptionsMenu after onRestoreInstanceState
+// invalidateOptionsMenu() when undo/redo status changes
 
-public class MainActivity extends Activity implements EditText.SelectionChangedListener, TextWatcher, ActionMode.Callback
+public class MainActivity extends Activity implements EditText.SelectionChangedListener, ActionMode.Callback
 {
     static final int ACTIVITY_OPEN_FILE = 1;
     static final int ACTIVITY_SAVE_FILE = 2;
@@ -45,11 +38,11 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     TextView mStatusLineEnding;
     TextView mStatusCursor;
     
-    UndoRedoHelper mUndoRedoHelper;    
+    UndoRedoHelper mUndoRedoHelper;
+    SyntaxHiglighterWatcher mSyntaxHiglighterWatcher;
     ShareActionProvider myShareActionProvider;
     boolean mWordWrap = false;
     TextFile mTextFile = new TextFile();
-    Brush mBrush = null;
     long mLastModified = -1;
     ActionMode mActionMode = null;
     
@@ -62,8 +55,8 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         mEdit = (EditText) findViewById(R.id.edit);
         mEdit.setHorizontallyScrolling(!mWordWrap); // bug when set in xml
         mUndoRedoHelper = new UndoRedoHelper(mEdit);
+        mSyntaxHiglighterWatcher = new SyntaxHiglighterWatcher(mEdit);
         mEdit.addSelectionChangedListener(this);
-        mEdit.addTextChangedListener(this);
         mEdit.setCustomSelectionActionModeCallback(this);
         registerForContextMenu(mEdit);
         
@@ -272,10 +265,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             mEdit.setHorizontallyScrolling(!mWordWrap);
             break;
                 
-        //case R.id.syntax_highlight:
-            //highlightSyntax(0, mEdit.getText().length());
-            //break;
-            
         case R.id.action_le_windows:
             mTextFile.mLineEnding = TextFile.LE_WINDOWS;
             updateStatusLineEnding();
@@ -367,33 +356,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             else
                 mStatusCursor.setText(String.format("%d:%d (%d)", line + 1, col + 1, selEnd - selStart));
         }
-    }
-    
-    @Override //TextWatcher
-    public void afterTextChanged(Editable s) { }
-    
-    @Override //TextWatcher
-    public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-    
-    @Override //TextWatcher
-    public void onTextChanged(CharSequence s, int start, int before, int count)
-    {
-        Layout layout = mEdit.getLayout();
-        if (layout != null && mBrush != null)
-        {
-            int lineBegin = layout.getLineForOffset(start);
-            int lineEnd = layout.getLineForOffset(start + count);
-            
-            lineBegin = Math.max(lineBegin - 10, 0);
-            lineEnd = Math.min(lineEnd + 10, layout.getLineCount() - 1);
-            
-            int lineBeginOffset = layout.getLineStart(lineBegin);
-            int lineEndOffset = layout.getLineEnd(lineEnd);
-            
-            highlightSyntax(lineBeginOffset, lineEndOffset);
-        }
-        
-        invalidateOptionsMenu();
     }
     
     @Override //ActionMode.Callback
@@ -503,10 +465,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     
     void updateStatusBrush()
     {
-        if (mBrush != null)
-            mStatusBrush.setText(mBrush.getName());
-        else
-            mStatusBrush.setText("");
+        mStatusBrush.setText(mSyntaxHiglighterWatcher.getBrushName());
     }
     
     static void Enable(MenuItem mi, boolean enable)
@@ -600,64 +559,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         startActivityForResult(intent, ACTIVITY_OPEN_FILE);
     }
     
-    void highlightSyntax(int start, int end)
-    {
-        Editable e = mEdit.getText();
-        if (mBrush != null)
-        {
-            remove(e, start, end);
-           
-            SyntaxHighlighter sh = new SyntaxHighlighter(mBrush);
-            Map<Range<Integer>, String> regionList = sh.parse(e, start, end);
-            for (Map.Entry<Range<Integer>, String> r : regionList.entrySet())
-            {
-                int color = 0;
-                switch (r.getValue())
-                {
-                case Brush.PREPROCESSOR:
-                    color = 0xFFFF6820;
-                    break;
-                    
-                case Brush.KEYWORD:
-                    color = 0xFF00FFFF;
-                    break;
-                    
-                case Brush.STRING:
-                case Brush.VALUE:
-                //case Brush.LITERAL:
-                    color = 0xFFFF00FF;
-                    break;
-                    
-                //case Brush.LABEL:
-                case Brush.COLOR1:
-                    color = 0xFFFFFF00;
-                    break;
-                    
-                case Brush.VARIABLE:
-                    color = 0xFF007F7F;
-                    break;
-                    
-                case Brush.COMMENTS:
-                    color = 0xFF00FF00;
-                    break;
-                }
-                Object span = new android.text.style.ForegroundColorSpan(color);
-                e.setSpan(span, r.getKey().lowerEndpoint(), r.getKey().upperEndpoint(), android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
-        }
-        else
-        {
-            remove(e, 0, mEdit.getText().length());
-        }
-    }
-    
-    private static void remove(Editable editable, int start, int end)
-    {
-        android.text.style.ForegroundColorSpan[] spans = editable.getSpans(start, end, android.text.style.ForegroundColorSpan.class);
-        for (Object s : spans)
-            editable.removeSpan(s);
-    }
-    
     void toast(String msg)
     {
         Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
@@ -726,7 +627,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         {
             if (mException != null)
                 toast("Exception: " + mException);
-            mBrush = SyntaxHighlighter.getBrush(Utils.getFileExtension(mTextFile.mUri));
+            mSyntaxHiglighterWatcher.setBrush(Utils.getFileExtension(mTextFile.mUri));
             if (result[0] != null)
                 mEdit.setText(result[0]);
             updateStatusLineEnding();
@@ -735,7 +636,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             mUndoRedoHelper.clearHistory();
             mUndoRedoHelper.markSaved(true);
             mLastModified = Utils.getLastModified(mTextFile.mUri);
-            //highlightSyntax(0, mEdit.getText().length());
             super.onPostExecute(result);
         }
     }
