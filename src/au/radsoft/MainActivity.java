@@ -26,6 +26,8 @@ import java.io.File;
 
 public class MainActivity extends Activity implements EditText.SelectionChangedListener, UndoRedoHelper.HistoryChangedListener, ActionMode.Callback
 {
+    private static final String TAG = MainActivity.class.getCanonicalName();
+    
     static final int ACTIVITY_OPEN_FILE = 1;
     static final int ACTIVITY_SAVE_FILE = 2;
 
@@ -36,13 +38,14 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     TextView mStatusLineEnding;
     TextView mStatusCursor;
 
+    ActionMode mActionMode = null;
+    ShareActionProvider myShareActionProvider = null;
+    
     UndoRedoHelper mUndoRedoHelper;
     SyntaxHiglighterWatcher mSyntaxHiglighterWatcher;
-    ShareActionProvider myShareActionProvider;
     boolean mWordWrap = false;
     TextFile mTextFile = new TextFile();
     long mLastModified = -1;
-    ActionMode mActionMode = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -83,6 +86,8 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     {
         super.onSaveInstanceState(state);
         mUndoRedoHelper.onSaveInstanceState(state);
+        state.putParcelable(TAG + ".file", mTextFile);
+        state.putBoolean(TAG + ".wordwrap", mWordWrap);
     }
 
     @Override
@@ -90,7 +95,11 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     {
         super.onRestoreInstanceState(state);
         mUndoRedoHelper.onRestoreInstanceState(state);
-        invalidateOptionsMenu();
+        mTextFile = Utils.ifNull((TextFile) state.getParcelable(TAG + ".file"), mTextFile);
+        mLastModified = Utils.getLastModified(mTextFile.mUri);
+        mWordWrap = state.getBoolean(TAG + ".wordwrap");
+        
+        setUri(mTextFile.mUri);
     }
 
     @Override
@@ -100,7 +109,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
         updateStatusLineEnding();
         updateStatusFileEncoding();
-        updateStatusBrush();
 
         if (mLastModified != Utils.getLastModified(mTextFile.mUri))
         {
@@ -522,6 +530,9 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         else
             getActionBar().setSubtitle(null);
 
+        mSyntaxHiglighterWatcher.setBrush(Utils.getFileExtension(uri));
+        updateStatusBrush();
+
         invalidateOptionsMenu();
 
         updateShareActionProvider();
@@ -637,12 +648,10 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         {
             if (mException != null)
                 toast("Exception: " + mException);
-            mSyntaxHiglighterWatcher.setBrush(Utils.getFileExtension(mTextFile.mUri));
             if (result[0] != null)
                 mEdit.setText(result[0]);
             updateStatusLineEnding();
             updateStatusFileEncoding();
-            updateStatusBrush();
             mUndoRedoHelper.clearHistory();
             mUndoRedoHelper.markSaved(true);
             mLastModified = Utils.getLastModified(mTextFile.mUri);
