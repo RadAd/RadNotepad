@@ -178,7 +178,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.options, menu);
-        inflater.inflate(R.menu.line_ending, menu.addSubMenu(R.string.action_line_ending));
 
         myShareActionProvider = (ShareActionProvider) menu.findItem(R.id.action_share).getActionProvider();
         updateShareActionProvider();
@@ -293,6 +292,10 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
         case R.id.selection_lower_case:
             replaceSelectedText(getSelectedText().toString().toLowerCase());
+            break;
+
+        case R.id.selection_share:
+            sendChooser();
             break;
 
         default:
@@ -555,6 +558,15 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         chooseFile.setType("text/*");
         Intent intent = Intent.createChooser(chooseFile, getString(R.string.save_as_prompt));
         startActivityForResult(intent, ACTIVITY_SAVE_FILE);
+    }
+
+    void sendChooser()
+    {
+        Intent chooseFile = new Intent(Intent.ACTION_SEND);
+        chooseFile.putExtra(Intent.EXTRA_TEXT, getSelectedText());
+        chooseFile.setType("text/plain");
+        Intent intent = Intent.createChooser(chooseFile, getString(R.string.send_prompt));
+        startActivity(intent);
     }
 
     void openSaf()

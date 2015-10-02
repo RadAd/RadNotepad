@@ -5,16 +5,17 @@
     <string name="no">No</string>
     <string name="open_prompt">Open</string>
     <string name="save_as_prompt">Save As</string>
+    <string name="send_prompt">Send To</string>
     <string name="action_open">Open...</string>
     <string name="action_revert">Revert to saved</string>
     <string name="action_save">Save</string>
     <string name="action_save_as">Save as...</string>
     <string name="action_details">Details...</string>
     <string name="action_share">Share file...</string>
+    <string name="selection_share">Share text...</string>
     <string name="action_open_with">Open with...</string>
     <string name="action_undo">Undo</string>
     <string name="action_redo">Redo</string>
-    <string name="action_search">Search</string>
     <string name="action_wrap">Word wrap</string>
     <string name="action_le_windows">Windows (CRLF)</string>
     <string name="action_le_unix">Unix (LF)</string>
@@ -23,7 +24,6 @@
     <string name="status_le_unix_short">LF</string>
     <string name="status_le_mac_short">CR</string>
     <string name="action_line_ending">Line ending...</string>
-    <string name="select_all">Select all</string>
     <string name="selection_upper_case">Upper case</string>
     <string name="selection_lower_case">Lower case</string>
 </resources>

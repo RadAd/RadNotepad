@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item android:id="@+id/select_all"
           android:showAsAction="always"
-          android:title="@string/select_all" />
+          android:title="@android:string/selectAll" />
     <item android:id="@+id/selection_upper_case"
           android:showAsAction="always"
           android:icon="@drawable/edit_uppercase"
@@ -11,4 +11,8 @@
           android:showAsAction="always"
           android:icon="@drawable/edit_lowercase"
           android:title="@string/selection_lower_case" />
+    <item android:id="@+id/selection_share"
+          android:showAsAction="always"
+          android:icon="@drawable/ic_action_share"
+          android:title="@string/selection_share" />
 </menu>
