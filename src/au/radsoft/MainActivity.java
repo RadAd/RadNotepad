@@ -21,12 +21,6 @@ import android.text.Layout;
 import android.text.TextWatcher;
 
 import java.io.File;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.Map;
 
 import com.google.common.collect.Range;
@@ -44,26 +38,20 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     static final int ACTIVITY_OPEN_FILE = 1;
     static final int ACTIVITY_SAVE_FILE = 2;
     
-    static final String LE_WINDOWS = "\r\n";
-    static final String LE_UNIX = "\n";
-    static final String LE_MAC = "\r";
-    
     EditText mEdit;
     
     TextView mStatusBrush;
-    TextView mEncoding;
+    TextView mStatusEncoding;
     TextView mStatusLineEnding;
     TextView mStatusCursor;
     
     UndoRedoHelper mUndoRedoHelper;    
     ShareActionProvider myShareActionProvider;
     boolean mWordWrap = false;
-    String mLineEnding = LE_WINDOWS;
+    TextFile mTextFile = new TextFile();
     Brush mBrush = null;
     long mLastModified = -1;
     ActionMode mActionMode = null;
-    
-    Uri mUri;
     
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -80,11 +68,10 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         registerForContextMenu(mEdit);
         
         mStatusBrush = (TextView) findViewById(R.id.brush);
-        mEncoding = (TextView) findViewById(R.id.encoding);
+        mStatusEncoding = (TextView) findViewById(R.id.encoding);
         mStatusLineEnding = (TextView) findViewById(R.id.line_ending);
         mStatusCursor = (TextView) findViewById(R.id.cursor);
         
-        mEncoding.setText("UTF-8");
         onSelectionChanged(mEdit.getSelectionStart(), mEdit.getSelectionEnd());
         
         Intent intent = getIntent();
@@ -119,9 +106,10 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         super.onResume();
         
         updateStatusLineEnding();
+        updateStatusFileEncoding();
         updateStatusBrush();
         
-        if (mLastModified != Utils.getLastModified(mUri))
+        if (mLastModified != Utils.getLastModified(mTextFile.mUri))
         {
             new AlertDialog.Builder(this)
                 .setTitle("Changed?")
@@ -237,9 +225,9 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             break;
             
         case R.id.action_details:
-            if (mUri != null)
+            if (mTextFile.mUri != null)
             {
-                Uri uri = mUri;
+                Uri uri = mTextFile.mUri;
                 
                 String nl = "\n";
                 StringBuilder msg = new StringBuilder();
@@ -265,8 +253,8 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             break;
             
         case R.id.action_open_with:
-            if (mUri != null)
-                startActivity(new Intent(Intent.ACTION_VIEW, mUri));
+            if (mTextFile.mUri != null)
+                startActivity(new Intent(Intent.ACTION_VIEW, mTextFile.mUri));
             break;
 
         case R.id.action_undo:
@@ -289,19 +277,19 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             //break;
             
         case R.id.action_le_windows:
-            mLineEnding = LE_WINDOWS;
+            mTextFile.mLineEnding = TextFile.LE_WINDOWS;
             updateStatusLineEnding();
             mUndoRedoHelper.markSaved(false);
             break;
                 
         case R.id.action_le_unix:
-            mLineEnding = LE_UNIX;
+            mTextFile.mLineEnding = TextFile.LE_UNIX;
             updateStatusLineEnding();
             mUndoRedoHelper.markSaved(false);
             break;
                 
         case R.id.action_le_mac:
-            mLineEnding = LE_MAC;
+            mTextFile.mLineEnding = TextFile.LE_MAC;
             updateStatusLineEnding();
             mUndoRedoHelper.markSaved(false);
             break;
@@ -328,9 +316,9 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     @Override
     public boolean onPrepareOptionsMenu(Menu menu)
     {
-        Uri uri = mUri;
+        Uri uri = mTextFile.mUri;
         
-        Enable(menu.findItem(R.id.action_revert), uri != null && (!mUndoRedoHelper.isSaved() || (mLastModified != Utils.getLastModified(mUri))));
+        Enable(menu.findItem(R.id.action_revert), uri != null && (!mUndoRedoHelper.isSaved() || (mLastModified != Utils.getLastModified(uri))));
         Enable(menu.findItem(R.id.action_save), uri != null && !mUndoRedoHelper.isSaved());
         //Enable(menu.findItem(R.id.action_save_as), uri != null);
         Enable(menu.findItem(R.id.action_details), uri != null);
@@ -339,17 +327,17 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         Enable(menu.findItem(R.id.action_undo), mUndoRedoHelper.getCanUndo());
         Enable(menu.findItem(R.id.action_redo), mUndoRedoHelper.getCanRedo());
         Check(menu.findItem(R.id.action_wrap), mWordWrap);
-        switch (mLineEnding)
+        switch (mTextFile.mLineEnding)
         {
-        case LE_WINDOWS:
+        case TextFile.LE_WINDOWS:
             Check(menu.findItem(R.id.action_le_windows), true);
             break;
             
-        case LE_UNIX:
+        case TextFile.LE_UNIX:
             Check(menu.findItem(R.id.action_le_unix), true);
             break;
             
-        case LE_MAC:
+        case TextFile.LE_MAC:
             Check(menu.findItem(R.id.action_le_mac), true);
             break;
         }
@@ -490,22 +478,27 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     void updateStatusLineEnding()
     {
         int le = -1;
-        switch (mLineEnding)
+        switch (mTextFile.mLineEnding)
         {
-        case LE_WINDOWS:
+        case TextFile.LE_WINDOWS:
             le = R.string.status_le_windows_short;
             break;
             
-        case LE_UNIX:
+        case TextFile.LE_UNIX:
             le = R.string.status_le_unix_short;
             break;
             
-        case LE_MAC:
+        case TextFile.LE_MAC:
             le = R.string.status_le_mac_short;
             break;
         }
 
         mStatusLineEnding.setText(getString(le));
+    }
+    
+    void updateStatusFileEncoding()
+    {
+        mStatusEncoding.setText(mTextFile.mFileEncoding);
     }
     
     void updateStatusBrush()
@@ -537,7 +530,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     
     void updateShareActionProvider()
     {
-        Uri uri = mUri;
+        Uri uri = mTextFile.mUri;
         if (myShareActionProvider != null)
         {
             if (uri == null)
@@ -554,7 +547,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     
     void setUri(Uri uri)
     {
-        mUri = uri;
+        mTextFile.mUri = uri;
 
         if (uri != null)
             getActionBar().setSubtitle(uri.getLastPathSegment());
@@ -568,15 +561,15 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     
     void open()
     {
-        mLastModified = Utils.getLastModified(mUri);
-        if (mUri != null)
-            new LoadAsyncTask().execute(mUri);
+        mLastModified = Utils.getLastModified(mTextFile.mUri);
+        if (mTextFile.mUri != null)
+            new LoadAsyncTask().execute(mTextFile);
     }
         
     void save()
     {
-        if (mUri != null)
-            new SaveAsyncTask(mEncoding.getText().toString()).execute(mUri);
+        if (mTextFile.mUri != null)
+            new SaveAsyncTask().execute(mTextFile);
         else
             saveChooser();
     }
@@ -694,57 +687,26 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             });
     }
     
-    private class LoadAsyncTask extends ProgressDialogAsyncTask<Uri, CharSequence[]>
+    private class LoadAsyncTask extends ProgressDialogAsyncTask<TextFile, CharSequence[]>
     {
-        private String mFileLineEnding = LE_WINDOWS;
-        private String mFileEncoding = "UTF-8";
-        
         @Override
-        protected CharSequence[] doInBackground(Uri... uris)
+        protected CharSequence[] doInBackground(TextFile... tfs)
         {
-            CharSequence[] result = new CharSequence[uris.length];
+            CharSequence[] result = new CharSequence[tfs.length];
 
-            for (int i = 0; i < uris.length; i++)
+            for (int i = 0; i < tfs.length; i++)
             {
-                mDlg.setMessage("Loading " + uris[i].getLastPathSegment());
+                mDlg.setMessage("Loading " + tfs[i].mUri.getLastPathSegment());
                 try
                 {
-                    mFileEncoding = Utils.ifNull(Utils.detectEncoding(getContentResolver(), uris[i]), "UTF-8");
-                    InputStream is = getContentResolver().openInputStream(uris[i]);
-                    try (BufferedReader br = new BufferedReader(new InputStreamReader(is, mFileEncoding)))
-                    {
-                        StringBuffer sb = new StringBuffer();
-                        
-                        int c;
-                        while ((c = br.read()) != -1)
-                        {
-                            if (c == '\r')
-                            {
-                                mFileLineEnding = LE_MAC;
-                                br.mark(1);
-                                int nc = br.read();
-                                if (nc != '\n')
-                                    br.reset();
-                                else
-                                    mFileLineEnding = LE_WINDOWS;
-                                c = '\n';
-                            }
-                            else if (c == '\n')
-                            {
-                                mFileLineEnding = LE_UNIX;
-                            }
-                            sb.append((char) c);
-                        }
-
-                        result[i] = sb;
-                    }
+                    result[i] = tfs[i].load(getContentResolver());
                 }
                 catch (Exception e)
                 {
                     mException = e;
                     e.printStackTrace();
                 }
-                publishProgress((int) ((i + 1.5f)*100f/uris.length));
+                publishProgress((int) ((i + 1.5f)*100f/tfs.length));
             }
             
             return result;
@@ -764,62 +726,38 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         {
             if (mException != null)
                 toast("Exception: " + mException);
-            mBrush = SyntaxHighlighter.getBrush(Utils.getFileExtension(mUri));
+            mBrush = SyntaxHighlighter.getBrush(Utils.getFileExtension(mTextFile.mUri));
             if (result[0] != null)
                 mEdit.setText(result[0]);
-            mLineEnding = mFileLineEnding;
             updateStatusLineEnding();
+            updateStatusFileEncoding();
             updateStatusBrush();
             mUndoRedoHelper.clearHistory();
             mUndoRedoHelper.markSaved(true);
-            mLastModified = Utils.getLastModified(mUri);
-            mEncoding.setText(mFileEncoding);
+            mLastModified = Utils.getLastModified(mTextFile.mUri);
             //highlightSyntax(0, mEdit.getText().length());
             super.onPostExecute(result);
         }
     }
     
-    private class SaveAsyncTask extends ProgressDialogAsyncTask<Uri, Void>
+    private class SaveAsyncTask extends ProgressDialogAsyncTask<TextFile, Void>
     {
-        private String mFileEncoding;
-        
-        SaveAsyncTask(String fileEncoding)
-        {
-            mFileEncoding = fileEncoding;
-        }
-        
         @Override
-        protected Void doInBackground(Uri... uris)
+        protected Void doInBackground(TextFile... tfs)
         {
-            for (int i = 0; i < uris.length; i++)
+            for (int i = 0; i < tfs.length; i++)
             {
-                mDlg.setMessage("Saving " + uris[i].getLastPathSegment());
+                mDlg.setMessage("Saving " + tfs[i].mUri.getLastPathSegment());
                 try
                 {
-                    OutputStream os = getContentResolver().openOutputStream(uris[i]);
-                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, mFileEncoding)))
-                    {
-                        CharSequence cs = mEdit.getText();
-                        
-                        int begin = 0;
-                        int end = 0;
-                        while ((end = indexOf(cs, '\n', begin)) != -1)
-                        {
-                            CharSequence sub = cs.subSequence(begin, end);
-                            bw.append(sub);
-                            bw.write(mLineEnding);
-                            begin = end + 1;
-                        }
-                        CharSequence sub = cs.subSequence(begin, cs.length());
-                        bw.append(sub);
-                    }
+                    tfs[i].save(getContentResolver(), mEdit.getText());
                 }
                 catch (Exception e)
                 {
                     mException = e;
                     e.printStackTrace();
                 }
-                publishProgress((int) ((i + 1.5f)*100f/uris.length));
+                publishProgress((int) ((i + 1.5f)*100f/tfs.length));
             }
             
             return null;
@@ -842,7 +780,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             else
                 toast("Saved");
             mUndoRedoHelper.markSaved(true);
-            mLastModified = Utils.getLastModified(mUri);
+            mLastModified = Utils.getLastModified(mTextFile.mUri);
             super.onPostExecute(result);
         }
     }
