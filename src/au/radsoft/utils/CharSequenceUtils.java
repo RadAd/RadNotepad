@@ -83,6 +83,22 @@ public class CharSequenceUtils
         return -1;
     }
     
+    public static int indexOf(CharSequence cs, CharSequence search, boolean caseSensitive)
+    {
+        if (caseSensitive)
+            return indexOf(cs, search, 0);
+        else
+            return indexOfIgnoreCase(cs, search, 0);
+    }
+    
+    public static int indexOf(CharSequence cs, CharSequence search, int start, boolean caseSensitive)
+    {
+        if (caseSensitive)
+            return indexOf(cs, search, start);
+        else
+            return indexOfIgnoreCase(cs, search, start);
+    }
+    
     public static int lastIndexOf(CharSequence cs, char c)
     {
         return lastIndexOf(cs, c, cs.length() - 1);
@@ -102,7 +118,7 @@ public class CharSequenceUtils
     
     public static int lastIndexOfIgnoreCase(CharSequence cs, char c)
     {
-        return lastIndexOf(cs, c, cs.length() - 1);
+        return lastIndexOfIgnoreCase(cs, c, cs.length() - 1);
     }
     
     public static int lastIndexOfIgnoreCase(CharSequence cs, char c, int last)
@@ -152,7 +168,7 @@ public class CharSequenceUtils
         int o = last;
         if (o > (cs.length() - search.length()))
             o = cs.length() - search.length();
-        while ((o = lastIndexOf(cs, search.charAt(0), o)) != -1)
+        while ((o = lastIndexOfIgnoreCase(cs, search.charAt(0), o)) != -1)
         {
             CharSequence sub = cs.subSequence(o, o + search.length());
             if (compareIgnoreCase(search, sub) == 0)
@@ -160,6 +176,22 @@ public class CharSequenceUtils
             --o;
         }
         return -1;
+    }
+    
+    public static int lastIndexOf(CharSequence cs, CharSequence search, boolean caseSensitive)
+    {
+        if (caseSensitive)
+            return lastIndexOf(cs, search, cs.length() - search.length());
+        else
+            return lastIndexOfIgnoreCase(cs, search, cs.length() - search.length());
+    }
+    
+    public static int lastIndexOf(CharSequence cs, CharSequence search, int start, boolean caseSensitive)
+    {
+        if (caseSensitive)
+            return lastIndexOf(cs, search, start);
+        else
+            return lastIndexOfIgnoreCase(cs, search, start);
     }
     
     public static int compare(CharSequence l, CharSequence r)

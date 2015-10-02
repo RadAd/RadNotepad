@@ -23,6 +23,7 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
     
     private EditText mTextView = null;
     private Object mSpan = null;
+    private boolean caseSensitive_ = false;
     
     public TextSearchView(Context context)
     {
@@ -46,11 +47,25 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
         View v = layoutInflater.inflate(R.layout.search_view_buttons, l, false);
         l.addView(v);
         
-        View back = findViewById(R.id.search_back);
-        View forward = findViewById(R.id.search_forward);
+        setOnClickListener(R.id.search_back);
+        setOnClickListener(R.id.search_forward);
+        setOnClickListener(R.id.search_case);
         
-        back.setOnClickListener(this);
-        forward.setOnClickListener(this);
+        updateCaseSensitiveButton();
+    }
+    
+    private void setOnClickListener(int r)
+    {
+        View v = findViewById(r);
+        if (v != null)
+            v.setOnClickListener(this);
+    }
+    
+    private void updateCaseSensitiveButton()
+    {
+        android.widget.ImageView caseiv = (android.widget.ImageView) findViewById(R.id.search_case);
+        if (caseiv != null)
+            caseiv.setImageAlpha(caseSensitive_ ? 255 : 130);
     }
     
     public void attach(EditText textView)
@@ -85,6 +100,11 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
                 {
                     toast("'%s' not found", query);
                 }
+                break;
+                
+            case R.id.search_case:
+                caseSensitive_ = !caseSensitive_;
+                updateCaseSensitiveButton();
                 break;
             }
         }
@@ -156,15 +176,15 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
         int i = -1;
         if (forwards)
         {
-            i = indexOfIgnoreCase(text, query, o);
+            i = indexOf(text, query, o, caseSensitive_);
             if (i == -1 && o != 0)
-                i = indexOfIgnoreCase(text, query);
+                i = indexOf(text, query, caseSensitive_);
         }
         else
         {
-            i = lastIndexOfIgnoreCase(text, query, o);
+            i = lastIndexOf(text, query, o, caseSensitive_);
             if (i == -1)
-                i = lastIndexOfIgnoreCase(text, query);
+                i = lastIndexOf(text, query, caseSensitive_);
         }
         
         if (i != -1)

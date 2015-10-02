@@ -27,5 +27,17 @@
         android:src="@drawable/ic_action_next_item"
         android:scaleType="fitCenter"
         android:focusable="true" />
+    
+    <ImageView
+        android:id="@+id/search_case"
+        android:layout_width="56dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_vertical"
+        android:paddingStart="16dip"
+        android:paddingEnd="16dip"
+        android:background="?android:attr/selectableItemBackground"
+        android:src="@drawable/ic_action_font_case"
+        android:scaleType="fitCenter"
+        android:focusable="true" />
 
 </LinearLayout>
