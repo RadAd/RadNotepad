@@ -23,21 +23,19 @@ import java.io.File;
 
 // TODO
 // Close search view when lose focus
-// Need to call onPrepareOptionsMenu after onRestoreInstanceState
-// invalidateOptionsMenu() when undo/redo status changes
 
-public class MainActivity extends Activity implements EditText.SelectionChangedListener, ActionMode.Callback
+public class MainActivity extends Activity implements EditText.SelectionChangedListener, UndoRedoHelper.HistoryChangedListener, ActionMode.Callback
 {
     static final int ACTIVITY_OPEN_FILE = 1;
     static final int ACTIVITY_SAVE_FILE = 2;
-    
+
     EditText mEdit;
-    
+
     TextView mStatusBrush;
     TextView mStatusEncoding;
     TextView mStatusLineEnding;
     TextView mStatusCursor;
-    
+
     UndoRedoHelper mUndoRedoHelper;
     SyntaxHiglighterWatcher mSyntaxHiglighterWatcher;
     ShareActionProvider myShareActionProvider;
@@ -45,28 +43,29 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     TextFile mTextFile = new TextFile();
     long mLastModified = -1;
     ActionMode mActionMode = null;
-    
+
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        
+
         mEdit = (EditText) findViewById(R.id.edit);
         mEdit.setHorizontallyScrolling(!mWordWrap); // bug when set in xml
         mUndoRedoHelper = new UndoRedoHelper(mEdit);
+        mUndoRedoHelper.addHistoryChangedListener(this);
         mSyntaxHiglighterWatcher = new SyntaxHiglighterWatcher(mEdit);
         mEdit.addSelectionChangedListener(this);
         mEdit.setCustomSelectionActionModeCallback(this);
         registerForContextMenu(mEdit);
-        
+
         mStatusBrush = (TextView) findViewById(R.id.brush);
         mStatusEncoding = (TextView) findViewById(R.id.encoding);
         mStatusLineEnding = (TextView) findViewById(R.id.line_ending);
         mStatusCursor = (TextView) findViewById(R.id.cursor);
-        
+
         onSelectionChanged(mEdit.getSelectionStart(), mEdit.getSelectionEnd());
-        
+
         Intent intent = getIntent();
         if (intent != null)
         {
@@ -91,17 +90,18 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     {
         super.onRestoreInstanceState(state);
         mUndoRedoHelper.onRestoreInstanceState(state);
+        invalidateOptionsMenu();
     }
-    
+
     @Override
     public void onResume()
     {
         super.onResume();
-        
+
         updateStatusLineEnding();
         updateStatusFileEncoding();
         updateStatusBrush();
-        
+
         if (mLastModified != Utils.getLastModified(mTextFile.mUri))
         {
             new AlertDialog.Builder(this)
@@ -124,12 +124,12 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 .create().show();
         }
     }
-    
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         super.onActivityResult(requestCode, resultCode, data);
-        
+
         switch (requestCode)
         {
         case ACTIVITY_OPEN_FILE:
@@ -145,7 +145,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 }
             }
             break;
-            
+
         case ACTIVITY_SAVE_FILE:
             if (resultCode == RESULT_OK)
             {
@@ -161,7 +161,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             break;
         }
     }
-    
+
     @Override
     public void onBackPressed()
     {
@@ -172,25 +172,25 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 }
             });
     }
-    
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.options, menu);
         inflater.inflate(R.menu.line_ending, menu.addSubMenu(R.string.action_line_ending));
-        
+
         myShareActionProvider = (ShareActionProvider) menu.findItem(R.id.action_share).getActionProvider();
         updateShareActionProvider();
-        
+
         final MenuItem menuSearch = menu.findItem(R.id.action_search);
         au.radsoft.widget.TextSearchView searchView = (au.radsoft.widget.TextSearchView) menuSearch.getActionView();
         searchView.setQueryHint("Search in file");
         searchView.attach(mEdit);
-        
+
         return super.onCreateOptionsMenu(menu);
     }
-    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -212,22 +212,22 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         case R.id.action_save:
             save();
             break;
-            
+
         case R.id.action_save_as:
             saveChooser();
             break;
-            
+
         case R.id.action_details:
             if (mTextFile.mUri != null)
             {
                 Uri uri = mTextFile.mUri;
-                
+
                 String nl = "\n";
                 StringBuilder msg = new StringBuilder();
                 msg.append("Location: " + uri.toString());
                 msg.append(nl);
                 msg.append("MIME: " + Utils.ifNull(Utils.getMimeType(uri), ""));
-                
+
                 if (uri.getScheme().equals("file"))
                 {
                     File f = new File(uri.getPath());
@@ -237,14 +237,14 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                     msg.append(nl);
                     msg.append("Last Modified: " + d);
                 }
-                
+
                 new AlertDialog.Builder(this)
                     .setTitle(uri.getLastPathSegment())
                     .setMessage(msg)
                     .create().show();
             }
             break;
-            
+
         case R.id.action_open_with:
             if (mTextFile.mUri != null)
                 startActivity(new Intent(Intent.ACTION_VIEW, mTextFile.mUri));
@@ -254,59 +254,59 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             mUndoRedoHelper.undo();
             invalidateOptionsMenu();
             break;
-                
+
         case R.id.action_redo:
             mUndoRedoHelper.redo();
             invalidateOptionsMenu();
             break;
-                
+
         case R.id.action_wrap:
             mWordWrap = !mWordWrap;
             mEdit.setHorizontallyScrolling(!mWordWrap);
             break;
-                
+
         case R.id.action_le_windows:
             mTextFile.mLineEnding = TextFile.LE_WINDOWS;
             updateStatusLineEnding();
             mUndoRedoHelper.markSaved(false);
             break;
-                
+
         case R.id.action_le_unix:
             mTextFile.mLineEnding = TextFile.LE_UNIX;
             updateStatusLineEnding();
             mUndoRedoHelper.markSaved(false);
             break;
-                
+
         case R.id.action_le_mac:
             mTextFile.mLineEnding = TextFile.LE_MAC;
             updateStatusLineEnding();
             mUndoRedoHelper.markSaved(false);
             break;
-            
+
         case R.id.select_all:
             mEdit.selectAll();
             break;
-            
+
         case R.id.selection_upper_case:
             replaceSelectedText(getSelectedText().toString().toUpperCase());
             break;
-            
+
         case R.id.selection_lower_case:
             replaceSelectedText(getSelectedText().toString().toLowerCase());
             break;
-            
+
         default:
             return false;
         }
-        
+
         return true;
     }
-    
+
     @Override
     public boolean onPrepareOptionsMenu(Menu menu)
     {
         Uri uri = mTextFile.mUri;
-        
+
         Enable(menu.findItem(R.id.action_revert), uri != null && (!mUndoRedoHelper.isSaved() || (mLastModified != Utils.getLastModified(uri))));
         Enable(menu.findItem(R.id.action_save), uri != null && !mUndoRedoHelper.isSaved());
         //Enable(menu.findItem(R.id.action_save_as), uri != null);
@@ -321,19 +321,19 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         case TextFile.LE_WINDOWS:
             Check(menu.findItem(R.id.action_le_windows), true);
             break;
-            
+
         case TextFile.LE_UNIX:
             Check(menu.findItem(R.id.action_le_unix), true);
             break;
-            
+
         case TextFile.LE_MAC:
             Check(menu.findItem(R.id.action_le_mac), true);
             break;
         }
-        
+
         return super.onPrepareOptionsMenu(menu);
     }
-    
+
     @Override //SelectionChangedListener
     public void onSelectionChanged(int selStart, int selEnd)
     {
@@ -357,13 +357,19 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 mStatusCursor.setText(String.format("%d:%d (%d)", line + 1, col + 1, selEnd - selStart));
         }
     }
-    
+
+    @Override //UndoRedoHelper.HistoryChangedListener
+    public void onHistoryChanged(UndoRedoHelper helper)
+    {
+        invalidateOptionsMenu();
+    }
+
     @Override //ActionMode.Callback
     public boolean onActionItemClicked(ActionMode mode, MenuItem item)
     {
         return onOptionsItemSelected(item);
     }
-    
+
     @Override //ActionMode.Callback
     public boolean onCreateActionMode(ActionMode mode, Menu menu)
     {
@@ -372,20 +378,20 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         menu.removeItem(android.R.id.selectAll);
         return true;
     }
-    
+
     @Override //ActionMode.Callback
     public void onDestroyActionMode(ActionMode mode)
     {
         if (mActionMode == mode)
             mActionMode = null;
     }
-    
+
     @Override //ActionMode.Callback
     public boolean onPrepareActionMode(ActionMode mode, Menu menu)
     {
         return onPrepareOptionsMenu(menu);
     }
-    
+
     void checkSave(String msg, final Runnable cb)
     {
         if (!mUndoRedoHelper.isSaved())
@@ -413,7 +419,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         else
             cb.run();
     }
-    
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo menuInfo)
     {
@@ -436,7 +442,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         }
         super.onCreateContextMenu(menu, view, menuInfo);
     }
-    
+
     void updateStatusLineEnding()
     {
         int le = -1;
@@ -445,11 +451,11 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         case TextFile.LE_WINDOWS:
             le = R.string.status_le_windows_short;
             break;
-            
+
         case TextFile.LE_UNIX:
             le = R.string.status_le_unix_short;
             break;
-            
+
         case TextFile.LE_MAC:
             le = R.string.status_le_mac_short;
             break;
@@ -457,17 +463,17 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
         mStatusLineEnding.setText(getString(le));
     }
-    
+
     void updateStatusFileEncoding()
     {
         mStatusEncoding.setText(mTextFile.mFileEncoding);
     }
-    
+
     void updateStatusBrush()
     {
         mStatusBrush.setText(mSyntaxHiglighterWatcher.getBrushName());
     }
-    
+
     static void Enable(MenuItem mi, boolean enable)
     {
         if (mi != null)
@@ -478,7 +484,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 icon.setAlpha(enable ? 255 : 130);
         }
     }
-    
+
     static void Check(MenuItem mi, boolean enable)
     {
         if (mi != null)
@@ -486,7 +492,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             mi.setChecked(enable);
         }
     }
-    
+
     void updateShareActionProvider()
     {
         Uri uri = mTextFile.mUri;
@@ -503,7 +509,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             }
         }
     }
-    
+
     void setUri(Uri uri)
     {
         mTextFile.mUri = uri;
@@ -512,19 +518,19 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             getActionBar().setSubtitle(uri.getLastPathSegment());
         else
             getActionBar().setSubtitle(null);
-        
+
         invalidateOptionsMenu();
-        
+
         updateShareActionProvider();
     }
-    
+
     void open()
     {
         mLastModified = Utils.getLastModified(mTextFile.mUri);
         if (mTextFile.mUri != null)
             new LoadAsyncTask().execute(mTextFile);
     }
-        
+
     void save()
     {
         if (mTextFile.mUri != null)
@@ -541,7 +547,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         Intent intent = Intent.createChooser(chooseFile, getString(R.string.open_prompt));
         startActivityForResult(intent, ACTIVITY_OPEN_FILE);
     }
-    
+
     void saveChooser()
     {
         Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
@@ -550,7 +556,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         Intent intent = Intent.createChooser(chooseFile, getString(R.string.save_as_prompt));
         startActivityForResult(intent, ACTIVITY_SAVE_FILE);
     }
-    
+
     void openSaf()
     {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -558,13 +564,13 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         intent.setType("text/*");
         startActivityForResult(intent, ACTIVITY_OPEN_FILE);
     }
-    
+
     void toast(String msg)
     {
         Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
         toast.show();
     }
-    
+
     CharSequence getSelectedText()
     {
         int st = mEdit.getSelectionStart();
@@ -572,7 +578,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         Editable e = mEdit.getText();
         return e.subSequence(st, en);
     }
-    
+
     void replaceSelectedText(CharSequence s)
     {
         final int st = mEdit.getSelectionStart();
@@ -587,7 +593,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 }
             });
     }
-    
+
     private class LoadAsyncTask extends ProgressDialogAsyncTask<TextFile, CharSequence[]>
     {
         @Override
@@ -609,10 +615,10 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 }
                 publishProgress((int) ((i + 1.5f)*100f/tfs.length));
             }
-            
+
             return result;
         }
-        
+
         @Override
         protected void onPreExecute()
         {
@@ -621,7 +627,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             mDlg.setMessage("Loading file");
             super.onPreExecute();
         }
-        
+
         @Override
         protected void onPostExecute(CharSequence[] result)
         {
@@ -639,7 +645,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             super.onPostExecute(result);
         }
     }
-    
+
     private class SaveAsyncTask extends ProgressDialogAsyncTask<TextFile, Void>
     {
         @Override
@@ -659,10 +665,10 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 }
                 publishProgress((int) ((i + 1.5f)*100f/tfs.length));
             }
-            
+
             return null;
         }
-        
+
         @Override
         protected void onPreExecute()
         {
@@ -671,7 +677,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             mDlg.setMessage("Saving file");
             super.onPreExecute();
         }
-        
+
         @Override
         protected void onPostExecute(Void result)
         {

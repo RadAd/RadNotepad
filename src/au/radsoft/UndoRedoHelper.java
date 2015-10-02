@@ -12,16 +12,21 @@ import android.text.TextWatcher;
 import android.text.style.UnderlineSpan;
 //import android.util.Log;
 import android.widget.TextView;
-
+import java.util.ArrayList;
 import java.util.LinkedList;
-
+import java.util.List;
 public class UndoRedoHelper {
     private static final String TAG = UndoRedoHelper.class.getCanonicalName();
+
+    public interface HistoryChangedListener {
+        public void onHistoryChanged(UndoRedoHelper helper);
+    }
 
     private boolean mIsUndoOrRedo = false;
     private EditHistory mEditHistory = new EditHistory();
     private EditTextChangeListener mChangeListener = new EditTextChangeListener();
     private TextView mTextView;
+    private List<HistoryChangedListener> listeners = new ArrayList<HistoryChangedListener>();
 
     public UndoRedoHelper(TextView textView) {
         mTextView = textView;
@@ -29,16 +34,26 @@ public class UndoRedoHelper {
         markSaved(true);
     }
 
-    public void onSaveInstanceState(Bundle state)
-    {
+    public void onSaveInstanceState(Bundle state) {
         state.putParcelable(TAG + ".history", mEditHistory);
     }
 
-    public void onRestoreInstanceState(Bundle state)
-    {
+    public void onRestoreInstanceState(Bundle state) {
         mEditHistory = state.getParcelable(TAG + ".history");
         if (mEditHistory == null)
             mEditHistory = new EditHistory();
+    }
+
+    public void addHistoryChangedListener(HistoryChangedListener o) {
+        listeners.add(o);
+    }
+
+    private void onHistoryChanged() {
+        if (listeners != null)
+        {
+            for (HistoryChangedListener l : listeners)
+                l.onHistoryChanged(this);
+        }
     }
 
     public void disconnect() {
@@ -77,16 +92,14 @@ public class UndoRedoHelper {
         Editable text = mTextView.getEditableText();
         int start = edit.mmStart;
         int end = start + (edit.mmAfter != null ? edit.mmAfter.length() : 0);
-
         mIsUndoOrRedo = true;
         text.replace(start, end, edit.mmBefore);
         mIsUndoOrRedo = false;
-
         for (Object o : text.getSpans(0, text.length(), UnderlineSpan.class)) {
             text.removeSpan(o);
         }
-
         Selection.setSelection(text, edit.mmBefore == null ? start : (start + edit.mmBefore.length()));
+        onHistoryChanged();
     }
 
     public boolean getCanRedo() {
@@ -98,23 +111,20 @@ public class UndoRedoHelper {
         if (edit == null) {
             return;
         }
-
         Editable text = mTextView.getEditableText();
         int start = edit.mmStart;
         int end = start + (edit.mmBefore != null ? edit.mmBefore.length() : 0);
-
         mIsUndoOrRedo = true;
         text.replace(start, end, edit.mmAfter);
         mIsUndoOrRedo = false;
-
         // This will get rid of underlines inserted when editor tries to come
         // up with a suggestion.
         for (Object o : text.getSpans(0, text.length(), UnderlineSpan.class)) {
             text.removeSpan(o);
         }
-
         Selection.setSelection(text, edit.mmAfter == null ? start
                 : (start + edit.mmAfter.length()));
+        onHistoryChanged();
     }
 
     // =================================================================== //
@@ -125,12 +135,11 @@ public class UndoRedoHelper {
                 public EditHistory createFromParcel(Parcel in) {
                     return new EditHistory(in);
                 }
-
                 public EditHistory[] newArray(int size) {
                     return new EditHistory[size];
                 }
             };
-            
+
         private int mmPosition = 0;
         private int mmMaxHistorySize = -1;
         private EditItem mSaved = null;
@@ -138,7 +147,7 @@ public class UndoRedoHelper {
 
         private EditHistory() {
         }
-        
+
         private EditHistory(Parcel in) {
             mmPosition = in.readInt();
             mmMaxHistorySize = in.readInt();
@@ -155,7 +164,7 @@ public class UndoRedoHelper {
             dest.writeList(mmHistory);
             dest.writeInt(mmHistory.indexOf(mSaved));
         }
-        
+
         @Override   // From Parcelable
         public int describeContents() {
             return 0;
@@ -172,7 +181,6 @@ public class UndoRedoHelper {
             }
             mmHistory.add(item);
             mmPosition++;
-
             if (mmMaxHistorySize >= 0) {
                 trimHistory();
             }
@@ -190,7 +198,6 @@ public class UndoRedoHelper {
                 mmHistory.removeFirst();
                 mmPosition--;
             }
-
             if (mmPosition < 0) {
                 mmPosition = 0;
             }
@@ -215,7 +222,6 @@ public class UndoRedoHelper {
             if (mmPosition >= mmHistory.size()) {
                 return null;
             }
-
             EditItem item = mmHistory.get(mmPosition);
             mmPosition++;
             return item;
@@ -228,7 +234,6 @@ public class UndoRedoHelper {
                 public EditItem createFromParcel(Parcel in) {
                     return new EditItem(in);
                 }
-
                 public EditItem[] newArray(int size) {
                     return new EditItem[size];
                 }
@@ -243,25 +248,25 @@ public class UndoRedoHelper {
             mmBefore = before;
             mmAfter = after;
         }
-        
+
         private EditItem(Parcel in) {
             mmStart = in.readInt();
             mmBefore = (CharSequence) in.readValue(null);
             mmAfter = (CharSequence) in.readValue(null);
         }
-        
+
         @Override   // From Parcelable
         public void writeToParcel(Parcel dest, int flags) {
             dest.writeInt(mmStart);
             dest.writeValue(mmBefore);
             dest.writeValue(mmAfter);
         }
-        
+
         @Override   // From Parcelable
         public int describeContents() {
             return 0;
         }
-        
+
         @Override
         public String toString() {
             return "EditItem{" +
@@ -299,6 +304,7 @@ public class UndoRedoHelper {
 
             mAfterChange = s.subSequence(start, start + count);
             makeBatch(start);
+            onHistoryChanged();
         }
 
         private void makeBatch(int start) {
