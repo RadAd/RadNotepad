@@ -4,6 +4,9 @@ package au.radsoft;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.text.Editable;
 import android.text.Selection;
 import android.text.TextUtils;
@@ -19,7 +22,6 @@ public class UndoRedoHelper {
 
     private boolean mIsUndoOrRedo = false;
     private EditHistory mEditHistory = new EditHistory();
-    private EditItem mSaved;
     private EditTextChangeListener mChangeListener = new EditTextChangeListener();
     private TextView mTextView;
 
@@ -27,6 +29,18 @@ public class UndoRedoHelper {
         mTextView = textView;
         mTextView.addTextChangedListener(mChangeListener);
         markSaved(true);
+    }
+
+    public void onSaveInstanceState(Bundle state)
+    {
+        state.putParcelable(TAG + ".history", mEditHistory);
+    }
+
+    public void onRestoreInstanceState(Bundle state)
+    {
+        mEditHistory = state.getParcelable(TAG + ".history");
+        if (mEditHistory == null)
+            mEditHistory = new EditHistory();
     }
 
     public void disconnect() {
@@ -43,13 +57,13 @@ public class UndoRedoHelper {
 
     public void markSaved(boolean saved) {
         if (saved)
-            mSaved = mEditHistory.getCurrent();
+            mEditHistory.mSaved = mEditHistory.getCurrent();
         else
-            mSaved = new EditItem(0, null, null);
+            mEditHistory.mSaved = null;
     }
 
     public boolean isSaved() {
-        return mSaved == mEditHistory.getCurrent();
+        return mEditHistory.mSaved == mEditHistory.getCurrent();
     }
 
     public boolean getCanUndo() {
@@ -179,11 +193,47 @@ public class UndoRedoHelper {
 
     // =================================================================== //
 
-    private final class EditHistory {
+    private final static class EditHistory implements Parcelable {
+        public static final Parcelable.Creator<EditHistory> CREATOR
+            = new Parcelable.Creator<EditHistory>() {
+                public EditHistory createFromParcel(Parcel in) {
+                    return new EditHistory(in);
+                }
+
+                public EditHistory[] newArray(int size) {
+                    return new EditHistory[size];
+                }
+            };
+            
         private int mmPosition = 0;
         private int mmMaxHistorySize = -1;
-
+        private EditItem mSaved = null;
         private final LinkedList<EditItem> mmHistory = new LinkedList<EditItem>();
+
+        private EditHistory() {
+        }
+        
+        private EditHistory(Parcel in) {
+            mmPosition = in.readInt();
+            mmMaxHistorySize = in.readInt();
+            in.readList(mmHistory, null);
+            int saved = in.readInt();
+            if (saved >= 0)
+                mSaved = mmHistory.get(saved);
+        }
+
+        @Override   // From Parcelable
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeInt(mmPosition);
+            dest.writeInt(mmMaxHistorySize);
+            dest.writeList(mmHistory);
+            dest.writeInt(mmHistory.indexOf(mSaved));
+        }
+        
+        @Override   // From Parcelable
+        public int describeContents() {
+            return 0;
+        }
 
         private void clear() {
             mmPosition = 0;
@@ -246,7 +296,18 @@ public class UndoRedoHelper {
         }
     }
 
-    private final class EditItem {
+    private final static class EditItem implements Parcelable {
+        public static final Parcelable.Creator<EditItem> CREATOR
+            = new Parcelable.Creator<EditItem>() {
+                public EditItem createFromParcel(Parcel in) {
+                    return new EditItem(in);
+                }
+
+                public EditItem[] newArray(int size) {
+                    return new EditItem[size];
+                }
+            };
+
         private int mmStart;
         private CharSequence mmBefore;
         private CharSequence mmAfter;
@@ -256,7 +317,25 @@ public class UndoRedoHelper {
             mmBefore = before;
             mmAfter = after;
         }
-
+        
+        private EditItem(Parcel in) {
+            mmStart = in.readInt();
+            mmBefore = (CharSequence) in.readValue(null);
+            mmAfter = (CharSequence) in.readValue(null);
+        }
+        
+        @Override   // From Parcelable
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeInt(mmStart);
+            dest.writeValue(mmBefore);
+            dest.writeValue(mmAfter);
+        }
+        
+        @Override   // From Parcelable
+        public int describeContents() {
+            return 0;
+        }
+        
         @Override
         public String toString() {
             return "EditItem{" +

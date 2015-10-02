@@ -1,20 +1,43 @@
 package au.radsoft;
 
-import android.app.*;
-import android.content.*;
-import android.os.*;
-import android.view.*;
-import android.widget.*;
-import android.net.*;
-import java.io.*;
-import android.text.*;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.ActionMode;
+import android.view.ContextMenu;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ShareActionProvider;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.net.Uri;
+import android.text.Editable;
+import android.text.Layout;
+import android.text.TextWatcher;
 
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Map;
+
 import com.google.common.collect.Range;
 import radsoft.syntaxhighlighter.brush.Brush;
 import radsoft.syntaxhighlighter.SyntaxHighlighter;
 
 import static au.radsoft.utils.CharSequenceUtils.*;
+
+// TODO
+// Close search view when lose focus
+// Need to call onPrepareOptionsMenu after onRestoreInstanceState
 
 public class MainActivity extends Activity implements EditText.SelectionChangedListener, TextWatcher, ActionMode.Callback
 {
@@ -76,6 +99,20 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         }
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle state)
+    {
+        super.onSaveInstanceState(state);
+        mUndoRedoHelper.onSaveInstanceState(state);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle state)
+    {
+        super.onRestoreInstanceState(state);
+        mUndoRedoHelper.onRestoreInstanceState(state);
+    }
+    
     @Override
     public void onResume()
     {
