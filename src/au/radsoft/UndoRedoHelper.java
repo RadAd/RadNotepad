@@ -9,14 +9,14 @@ import android.text.Selection;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.UnderlineSpan;
-import android.util.Log;
+//import android.util.Log;
 import android.widget.TextView;
 
 import java.util.LinkedList;
 
 public class UndoRedoHelper {
     private static final String TAG = UndoRedoHelper.class.getCanonicalName();
-    
+
     private boolean mIsUndoOrRedo = false;
     private EditHistory mEditHistory = new EditHistory();
     private EditItem mSaved;
@@ -141,7 +141,7 @@ public class UndoRedoHelper {
         String hash = sp.getString(prefix + ".hash", null);
         if (hash == null) {
             // No state to be restored.
-            return true;
+            return false;
         }
 
         if (Integer.valueOf(hash) != mTextView.getText().toString().hashCode()) {
@@ -277,6 +277,7 @@ public class UndoRedoHelper {
         private ActionType lastActionType = ActionType.NOT_DEF;
         private long lastActionTime = 0;
 
+        @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             if (mIsUndoOrRedo) {
                 return;
@@ -285,6 +286,7 @@ public class UndoRedoHelper {
             mBeforeChange = s.subSequence(start, start + count);
         }
 
+        @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             if (mIsUndoOrRedo) {
                 return;
@@ -297,18 +299,43 @@ public class UndoRedoHelper {
         private void makeBatch(int start) {
             ActionType at = getActionType();
             EditItem editItem = mEditHistory.getCurrent();
-            if ((lastActionType != at || ActionType.PASTE == at || System.currentTimeMillis() - lastActionTime > 1000) || editItem == null) {
+            // TODO keep spaces separate from characters
+            if (editItem == null || lastActionType != at || !canJoin(at, editItem, start) || (System.currentTimeMillis() - lastActionTime) > 500) {
                 mEditHistory.add(new EditItem(start, mBeforeChange, mAfterChange));
             } else {
-                if (at == ActionType.DELETE) {
+                switch (at) {
+                case DELETE:
                     editItem.mmStart = start;
                     editItem.mmBefore = TextUtils.concat(mBeforeChange, editItem.mmBefore);
-                } else {
-                    editItem.mmAfter = TextUtils.concat(editItem.mmAfter, mAfterChange);
+                    break;
+
+                case INSERT:
+                    if (TextUtils.isEmpty(mBeforeChange))
+                        editItem.mmAfter = TextUtils.concat(editItem.mmAfter, mAfterChange);
+                    else
+                        editItem.mmAfter = mAfterChange;
+                    break;
                 }
             }
             lastActionType = at;
             lastActionTime = System.currentTimeMillis();
+        }
+
+        private boolean canJoin(ActionType at, EditItem editItem, int start) {
+            switch (at) {
+            case DELETE:
+                return (start + mBeforeChange.length()) == editItem.mmStart;
+
+            case INSERT:
+                if (TextUtils.isEmpty(mBeforeChange))
+                    return start == (editItem.mmStart + editItem.mmAfter.length());
+                else
+                    return start == editItem.mmStart;
+
+            default:
+            case PASTE:
+                return false;
+            }
         }
 
         private ActionType getActionType() {
@@ -316,11 +343,14 @@ public class UndoRedoHelper {
                 return ActionType.DELETE;
             } else if (TextUtils.isEmpty(mBeforeChange) && !TextUtils.isEmpty(mAfterChange)) {
                 return ActionType.INSERT;
+            } else if (mBeforeChange.length() <= mAfterChange.length() && TextUtils.regionMatches(mBeforeChange, 0, mAfterChange, 0, mBeforeChange.length())) {
+                return ActionType.INSERT;
             } else {
                 return ActionType.PASTE;
             }
         }
 
+        @Override
         public void afterTextChanged(Editable s) {
         }
     }
