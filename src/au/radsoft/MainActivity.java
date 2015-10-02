@@ -569,14 +569,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         startActivity(intent);
     }
 
-    void openSaf()
-    {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("text/*");
-        startActivityForResult(intent, ACTIVITY_OPEN_FILE);
-    }
-
     void toast(String msg)
     {
         Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
