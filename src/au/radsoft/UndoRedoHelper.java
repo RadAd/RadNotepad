@@ -2,8 +2,6 @@ package au.radsoft;
 
 // From https://gist.github.com/kidinov/6900164#file-undo_redo-android
 
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -117,78 +115,6 @@ public class UndoRedoHelper {
 
         Selection.setSelection(text, edit.mmAfter == null ? start
                 : (start + edit.mmAfter.length()));
-    }
-
-    public void storePersistentState(Editor editor, String prefix) {
-        // Store hash code of text in the editor so that we can check if the
-        // editor contents has changed.
-        editor.putString(prefix + ".hash",
-                String.valueOf(mTextView.getText().toString().hashCode()));
-        editor.putInt(prefix + ".maxSize", mEditHistory.mmMaxHistorySize);
-        editor.putInt(prefix + ".position", mEditHistory.mmPosition);
-        editor.putInt(prefix + ".size", mEditHistory.mmHistory.size());
-
-        int i = 0;
-        for (EditItem ei : mEditHistory.mmHistory) {
-            String pre = prefix + "." + i;
-
-            editor.putInt(pre + ".start", ei.mmStart);
-            editor.putString(pre + ".before", ei.mmBefore.toString());
-            editor.putString(pre + ".after", ei.mmAfter.toString());
-
-            i++;
-        }
-    }
-
-    public boolean restorePersistentState(SharedPreferences sp, String prefix)
-            throws IllegalStateException {
-
-        boolean ok = doRestorePersistentState(sp, prefix);
-        if (!ok) {
-            mEditHistory.clear();
-        }
-
-        return ok;
-    }
-
-    private boolean doRestorePersistentState(SharedPreferences sp, String prefix) {
-        String hash = sp.getString(prefix + ".hash", null);
-        if (hash == null) {
-            // No state to be restored.
-            return false;
-        }
-
-        if (Integer.valueOf(hash) != mTextView.getText().toString().hashCode()) {
-            return false;
-        }
-
-        mEditHistory.clear();
-        mEditHistory.mmMaxHistorySize = sp.getInt(prefix + ".maxSize", -1);
-
-        int count = sp.getInt(prefix + ".size", -1);
-        if (count == -1) {
-            return false;
-        }
-
-        for (int i = 0; i < count; i++) {
-            String pre = prefix + "." + i;
-
-            int start = sp.getInt(pre + ".start", -1);
-            String before = sp.getString(pre + ".before", null);
-            String after = sp.getString(pre + ".after", null);
-
-            if (start == -1 || before == null || after == null) {
-                return false;
-            }
-            mEditHistory.add(new EditItem(start, before, after));
-        }
-
-        mEditHistory.mmPosition = sp.getInt(prefix + ".position", -1);
-        if (mEditHistory.mmPosition == -1) {
-            return false;
-        }
-
-        return true;
     }
 
     // =================================================================== //

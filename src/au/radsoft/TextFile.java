@@ -1,17 +1,14 @@
 package au.radsoft;
 
 import android.net.Uri;
+import static android.text.TextUtils.indexOf;
 
-import java.io.File;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.Map;
-
-import static au.radsoft.utils.CharSequenceUtils.*;
 
 class TextFile
 {
