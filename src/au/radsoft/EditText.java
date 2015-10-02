@@ -1,6 +1,7 @@
 package au.radsoft;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.text.Layout;
 import android.util.AttributeSet;
 import android.widget.ScrollView;
@@ -37,6 +38,7 @@ public class EditText extends android.widget.EditText
         listeners.add(o);
     }
 
+    @Override
     protected void onSelectionChanged(int selStart, int selEnd)
     {
         if (listeners != null)
@@ -49,14 +51,17 @@ public class EditText extends android.widget.EditText
         if (parent != null)
         {
             Layout layout = getLayout();
-            int line = layout.getLineForOffset(selStart);
-            android.graphics.Rect r = new android.graphics.Rect();
-            layout.getLineBounds(line, r);
-            r.left = (int) layout.getPrimaryHorizontal(selStart);
-            if (r.top < parent.getScrollY())
-                parent.smoothScrollTo(r.left, r.top);
-            else if (r.bottom > (parent.getScrollY() + parent.getHeight()))
-                parent.smoothScrollTo(r.left, r.bottom - parent.getHeight());
+            if (layout != null)
+            {
+                int line = layout.getLineForOffset(selStart);
+                Rect r = new Rect();
+                layout.getLineBounds(line, r);
+                r.left = (int) layout.getPrimaryHorizontal(selStart);
+                if (r.top < parent.getScrollY())
+                    parent.smoothScrollTo(r.left, r.top);
+                else if (r.bottom > (parent.getScrollY() + parent.getHeight()))
+                    parent.smoothScrollTo(r.left, r.bottom - parent.getHeight());
+            }
         }
     }
 }
