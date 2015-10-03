@@ -115,14 +115,14 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             new AlertDialog.Builder(this)
                 .setTitle("Changed?")
                 .setMessage("The file has changed do you wish to revert to saved?")
-                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener()
+                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener()
                     {
                         public void onClick(DialogInterface arg0, int arg1)
                         {
                             mUndoRedoHelper.markSaved(false);
                         }
                     })
-                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
                     {
                         public void onClick(DialogInterface arg0, int arg1)
                         {
@@ -201,116 +201,124 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
-        switch (item.getItemId())
+        try
         {
-        case R.id.action_open_content:
-            checkSave("Do you wish to save before opening?", new Runnable() {
-                    public void run()
-                    {
-                        openChooser();
-                    }
-                });
-            break;
-
-        case R.id.action_revert:
-            open();
-            break;
-
-        case R.id.action_save:
-            save();
-            break;
-
-        case R.id.action_save_as:
-            saveChooser();
-            break;
-
-        case R.id.action_details:
-            if (mTextFile.mUri != null)
+            switch (item.getItemId())
             {
-                Uri uri = mTextFile.mUri;
+            case R.id.action_open_content:
+                checkSave("Do you wish to save before opening?", new Runnable() {
+                        public void run()
+                        {
+                            openChooser();
+                        }
+                    });
+                break;
 
-                String nl = "\n";
-                StringBuilder msg = new StringBuilder();
-                msg.append("Location: " + uri.toString());
-                msg.append(nl);
-                msg.append("MIME: " + Utils.ifNull(Utils.getMimeType(uri), ""));
+            case R.id.action_revert:
+                open();
+                break;
 
-                if (uri.getScheme().equals("file"))
+            case R.id.action_save:
+                save();
+                break;
+
+            case R.id.action_save_as:
+                saveChooser();
+                break;
+
+            case R.id.action_details:
+                if (mTextFile.mUri != null)
                 {
-                    File f = new File(uri.getPath());
+                    Uri uri = mTextFile.mUri;
+
+                    String nl = "\n";
+                    StringBuilder msg = new StringBuilder();
+                    msg.append("Location: " + uri.toString());
                     msg.append(nl);
-                    msg.append("Read only: " + Boolean.toString(!f.canWrite()));
-                    java.util.Date d = new java.util.Date(f.lastModified());
-                    msg.append(nl);
-                    msg.append("Last Modified: " + d);
+                    msg.append("MIME: " + Utils.ifNull(Utils.getMimeType(uri), ""));
+
+                    if (uri.getScheme().equals("file"))
+                    {
+                        File f = new File(uri.getPath());
+                        msg.append(nl);
+                        msg.append("Read only: " + Boolean.toString(!f.canWrite()));
+                        java.util.Date d = new java.util.Date(f.lastModified());
+                        msg.append(nl);
+                        msg.append("Last Modified: " + d);
+                    }
+
+                    new AlertDialog.Builder(this)
+                        .setTitle(uri.getLastPathSegment())
+                        .setMessage(msg)
+                        .create().show();
                 }
+                break;
 
-                new AlertDialog.Builder(this)
-                    .setTitle(uri.getLastPathSegment())
-                    .setMessage(msg)
-                    .create().show();
+            case R.id.action_open_with:
+                if (mTextFile.mUri != null)
+                    startActivity(new Intent(Intent.ACTION_VIEW, mTextFile.mUri));
+                break;
+
+            case R.id.action_undo:
+                mUndoRedoHelper.undo();
+                invalidateOptionsMenu();
+                break;
+
+            case R.id.action_redo:
+                mUndoRedoHelper.redo();
+                invalidateOptionsMenu();
+                break;
+
+            case R.id.action_wrap:
+                mWordWrap = !mWordWrap;
+                mEdit.setHorizontallyScrolling(!mWordWrap);
+                break;
+
+            case R.id.action_le_windows:
+                mTextFile.mLineEnding = TextFile.LE_WINDOWS;
+                updateStatusLineEnding();
+                mUndoRedoHelper.markSaved(false);
+                break;
+
+            case R.id.action_le_unix:
+                mTextFile.mLineEnding = TextFile.LE_UNIX;
+                updateStatusLineEnding();
+                mUndoRedoHelper.markSaved(false);
+                break;
+
+            case R.id.action_le_mac:
+                mTextFile.mLineEnding = TextFile.LE_MAC;
+                updateStatusLineEnding();
+                mUndoRedoHelper.markSaved(false);
+                break;
+
+            case R.id.select_all:
+                mEdit.selectAll();
+                break;
+
+            case R.id.selection_change_case:
+                {
+                    CharSequence text = getSelectedText();
+                    if (text.length() > 0)
+                        replaceSelectedText(Character.isUpperCase(text.charAt(0)) ? text.toString().toLowerCase() : text.toString().toUpperCase());
+                }
+                break;
+
+            case R.id.selection_share:
+                sendChooser();
+                break;
+
+            default:
+                return false;
             }
-            break;
 
-        case R.id.action_open_with:
-            if (mTextFile.mUri != null)
-                startActivity(new Intent(Intent.ACTION_VIEW, mTextFile.mUri));
-            break;
-
-        case R.id.action_undo:
-            mUndoRedoHelper.undo();
-            invalidateOptionsMenu();
-            break;
-
-        case R.id.action_redo:
-            mUndoRedoHelper.redo();
-            invalidateOptionsMenu();
-            break;
-
-        case R.id.action_wrap:
-            mWordWrap = !mWordWrap;
-            mEdit.setHorizontallyScrolling(!mWordWrap);
-            break;
-
-        case R.id.action_le_windows:
-            mTextFile.mLineEnding = TextFile.LE_WINDOWS;
-            updateStatusLineEnding();
-            mUndoRedoHelper.markSaved(false);
-            break;
-
-        case R.id.action_le_unix:
-            mTextFile.mLineEnding = TextFile.LE_UNIX;
-            updateStatusLineEnding();
-            mUndoRedoHelper.markSaved(false);
-            break;
-
-        case R.id.action_le_mac:
-            mTextFile.mLineEnding = TextFile.LE_MAC;
-            updateStatusLineEnding();
-            mUndoRedoHelper.markSaved(false);
-            break;
-
-        case R.id.select_all:
-            mEdit.selectAll();
-            break;
-
-        case R.id.selection_change_case:
-            {
-                CharSequence text = getSelectedText();
-                if (text.length() > 0)
-                    replaceSelectedText(Character.isUpperCase(text.charAt(0)) ? text.toString().toLowerCase() : text.toString().toUpperCase());
-            }
-            break;
-
-        case R.id.selection_share:
-            sendChooser();
-            break;
-
-        default:
+            return true;
+        }
+        catch (android.content.ActivityNotFoundException ex)
+        {
+            toast("No activity found.");
             return false;
         }
-
-        return true;
     }
 
     @Override
@@ -410,14 +418,14 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             new AlertDialog.Builder(this)
                 .setTitle("Save?")
                 .setMessage(msg)
-                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener()
+                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener()
                     {
                         public void onClick(DialogInterface arg0, int arg1)
                         {
                             cb.run();
                         }
                     })
-                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
                     {
                         public void onClick(DialogInterface arg0, int arg1)
                         {
@@ -525,10 +533,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     {
         mTextFile.mUri = uri;
 
-        if (uri != null)
-            getActionBar().setSubtitle(uri.getLastPathSegment());
-        else
-            getActionBar().setSubtitle(null);
+        getActionBar().setSubtitle(uri != null ? uri.getLastPathSegment() : null);
 
         mSyntaxHiglighterWatcher.setBrush(Utils.getFileExtension(uri));
         updateStatusBrush();
@@ -623,7 +628,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 {
                     result[i] = tfs[i].load(getContentResolver());
                 }
-                catch (Exception e)
+                catch (OutOfMemoryError | java.io.IOException e)
                 {
                     mException = e;
                     e.printStackTrace();
@@ -647,8 +652,16 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         protected void onPostExecute(CharSequence[] result)
         {
             if (mException != null)
-                toast("Exception: " + mException);
-            if (result[0] != null)
+            {
+                new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Error")
+                    .setMessage(Utils.getMessage(mException))
+                    .setPositiveButton(android.R.string.ok, null)
+                    .create().show();
+                setUri(null);
+                mEdit.setText(null);
+            }
+            else
                 mEdit.setText(result[0]);
             updateStatusLineEnding();
             updateStatusFileEncoding();
@@ -671,7 +684,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 {
                     tfs[i].save(getContentResolver(), mEdit.getText());
                 }
-                catch (Exception e)
+                catch (OutOfMemoryError | java.io.IOException e)
                 {
                     mException = e;
                     e.printStackTrace();
@@ -695,7 +708,11 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         protected void onPostExecute(Void result)
         {
             if (mException != null)
-                toast("Exception: " + mException);
+                new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Error")
+                    .setMessage(Utils.getMessage(mException))
+                    .setPositiveButton(android.R.string.ok, null)
+                    .create().show();
             else
                 toast("Saved");
             mUndoRedoHelper.markSaved(true);

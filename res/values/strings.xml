@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">RadNotepad</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
     <string name="open_prompt">Open</string>
     <string name="save_as_prompt">Save As</string>
     <string name="send_prompt">Send To</string>

@@ -13,12 +13,16 @@ class Utils
     
     public static String getFileExtension(Uri uri)
     {
+        if (uri == null)
+            return null;
         android.webkit.MimeTypeMap mtm = android.webkit.MimeTypeMap.getSingleton();
         return mtm.getFileExtensionFromUrl(uri.toString());
     }
     
     public static String getMimeType(Uri uri)
     {
+        if (uri == null)
+            return null;
         android.webkit.MimeTypeMap mtm = android.webkit.MimeTypeMap.getSingleton();
         String extension = mtm.getFileExtensionFromUrl(uri.toString());
         return mtm.getMimeTypeFromExtension(extension);
@@ -27,19 +31,20 @@ class Utils
     public static String detectEncoding(android.content.ContentResolver cr, Uri uri)
         throws java.io.FileNotFoundException, java.io.IOException
     {
-        InputStream is = cr.openInputStream(uri);
-
-        UniversalDetector detector = new UniversalDetector(null);
-        byte[] buf = new byte[4096];
-        int nread;
-        while ((nread = is.read(buf)) > 0 && !detector.isDone())
+        try (InputStream is = cr.openInputStream(uri))
         {
-            detector.handleData(buf, 0, nread);
-        }
-        detector.dataEnd();
+            UniversalDetector detector = new UniversalDetector(null);
+            byte[] buf = new byte[4096];
+            int nread;
+            while ((nread = is.read(buf)) > 0 && !detector.isDone())
+            {
+                detector.handleData(buf, 0, nread);
+            }
+            detector.dataEnd();
 
-        return detector.getDetectedCharset();
-        //detector.reset();
+            return detector.getDetectedCharset();
+            //detector.reset();
+        }
     }
     
     public static <T> T ifNull(T input, T ifnull)
@@ -58,12 +63,24 @@ class Utils
             return -1;
     }
     
-    public static <T> T[] concatenate(T[] A, T[] B)
+    public static String getUserFriendlyName(Throwable t)
     {
-        @SuppressWarnings("unchecked")
-        T[] C = (T[]) java.lang.reflect.Array.newInstance(A.getClass().getComponentType(), A.length + B.length);
-        System.arraycopy(A, 0, C, 0, A.length);
-        System.arraycopy(B, 0, C, A.length, B.length);
-        return C;
+        if (t instanceof OutOfMemoryError)
+            return "Out of memory";
+        else if (t instanceof java.io.FileNotFoundException)
+            return "File not found";
+        else if (t instanceof java.io.IOException)
+            return "IO error";
+        else
+            return t.getClass().getSimpleName();
+    }
+    
+    public static String getMessage(Throwable t)
+    {
+        String msg = t.getLocalizedMessage();
+        if (msg == null || msg.length() == 0)
+            return getUserFriendlyName(t);
+        else
+            return getUserFriendlyName(t) + ": " + msg;
     }
 }
