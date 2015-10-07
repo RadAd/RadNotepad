@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/search_view_buttons"
     android:orientation="horizontal"
     android:layout_width="wrap_content"
     android:layout_height="match_parent" >
@@ -13,6 +14,7 @@
         android:paddingEnd="16dip"
         android:background="?android:attr/selectableItemBackground"
         android:src="@drawable/ic_action_previous_item"
+        android:contentDescription="@string/search_backwards"
         android:scaleType="fitCenter"
         android:focusable="true" />
     
@@ -25,6 +27,7 @@
         android:paddingEnd="16dip"
         android:background="?android:attr/selectableItemBackground"
         android:src="@drawable/ic_action_next_item"
+        android:contentDescription="@string/search_forwards"
         android:scaleType="fitCenter"
         android:focusable="true" />
     
@@ -37,6 +40,7 @@
         android:paddingEnd="16dip"
         android:background="?android:attr/selectableItemBackground"
         android:src="@drawable/ic_action_font_case"
+        android:contentDescription="@string/search_case_sensitive"
         android:scaleType="fitCenter"
         android:focusable="true" />
 

@@ -17,9 +17,9 @@ import android.widget.Toast;
 import au.radsoft.R;
 import static au.radsoft.utils.CharSequenceUtils.*;
 
-public class TextSearchView extends SearchView implements SearchView.OnQueryTextListener, View.OnClickListener
+public class TextSearchView extends SearchView implements SearchView.OnQueryTextListener, View.OnClickListener, View.OnLongClickListener
 {
-    private static String _tag = "TextSearchView";
+    //private static String TAG = TextSearchView.class.getCanonicalName();
     
     private EditText mTextView = null;
     private Object mSpan = null;
@@ -43,9 +43,13 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
     {
         LinearLayout l = (LinearLayout) getChildAt(0);
  
-        LayoutInflater layoutInflater = LayoutInflater.from(getContext());
-        View v = layoutInflater.inflate(R.layout.search_view_buttons, l, false);
-        l.addView(v);
+        if (l !=null)
+        {
+            
+            LayoutInflater layoutInflater = LayoutInflater.from(getContext());
+            View v = layoutInflater.inflate(R.layout.search_view_buttons, l, false);
+            l.addView(v);
+        }
         
         setOnClickListener(R.id.search_back);
         setOnClickListener(R.id.search_forward);
@@ -58,7 +62,10 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
     {
         View v = findViewById(r);
         if (v != null)
+        {
             v.setOnClickListener(this);
+            v.setOnLongClickListener(this);
+        }
     }
     
     private void updateCaseSensitiveButton()
@@ -96,7 +103,7 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
                 break;
                 
             case R.id.search_back:
-                if (!findHighlight(query, mTextView.getSelectionStart() - query.length(), false))
+                if (!findHighlight(query, mTextView.getSelectionStart(), false))
                 {
                     toast("'%s' not found", query);
                 }
@@ -110,9 +117,26 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
         }
     }
     
+    @Override // from View.OnLongClickListener
+    public boolean onLongClick(View v)
+    {
+        CharSequence d = v.getContentDescription();
+        if (d != null)
+            toast(d.toString());
+        return true;
+    }
+    
     @Override
     public void onActionViewExpanded()
     {
+        View rv = getRootView();
+        View sv = findViewById(R.id.search_view_buttons);
+        boolean showExtraButtons = sv != null && rv.getWidth() > 1500;
+        if (sv != null)
+            sv.setVisibility(showExtraButtons ? View.VISIBLE : View.GONE);
+        setSubmitButtonEnabled(!showExtraButtons);
+        //toast("width " + rv.getWidth());
+        
         if (mTextView != null)
         {
             // super.onActionViewExpanded() seems to clear selected text
@@ -182,12 +206,12 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
         }
         else
         {
-            i = lastIndexOf(text, query, o, caseSensitive_);
+            i = lastIndexOf(text, query, o - query.length(), caseSensitive_);
             if (i == -1)
                 i = lastIndexOf(text, query, caseSensitive_);
         }
         
-        if (i != -1)
+        if (i >= 0)
         {
             mTextView.setSelection(i, i + query.length());
             mTextView.getText().setSpan(mSpan, i, i + query.length(), android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -199,6 +223,14 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
             mTextView.getText().removeSpan(mSpan);
             return false;
         }
+    }
+    
+    private void toast(int fmt, Object... args)
+    {
+        getResources().getString(fmt, args);
+        String msg = String.format(fmt, args);
+        Toast toast = Toast.makeText(getContext(), msg, Toast.LENGTH_LONG);
+        toast.show();
     }
     
     private void toast(String fmt, Object... args)

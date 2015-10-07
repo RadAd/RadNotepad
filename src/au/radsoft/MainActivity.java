@@ -115,14 +115,14 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             new AlertDialog.Builder(this)
                 .setTitle("Changed?")
                 .setMessage("The file has changed do you wish to revert to saved?")
-                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener()
+                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener()
                     {
                         public void onClick(DialogInterface arg0, int arg1)
                         {
                             mUndoRedoHelper.markSaved(false);
                         }
                     })
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
                     {
                         public void onClick(DialogInterface arg0, int arg1)
                         {
@@ -394,7 +394,8 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     {
         MenuInflater inflater = /*mode.*/getMenuInflater();
         inflater.inflate(R.menu.selection, menu);
-        menu.removeItem(android.R.id.selectAll);
+        //menu.removeItem(android.R.id.selectAll);
+        toast("onCreateActionMode");
         return true;
     }
 
@@ -418,14 +419,14 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             new AlertDialog.Builder(this)
                 .setTitle("Save?")
                 .setMessage(msg)
-                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener()
+                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener()
                     {
                         public void onClick(DialogInterface arg0, int arg1)
                         {
                             cb.run();
                         }
                     })
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
                     {
                         public void onClick(DialogInterface arg0, int arg1)
                         {
