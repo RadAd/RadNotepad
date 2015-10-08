@@ -12,9 +12,11 @@ import android.text.TextWatcher;
 import android.text.style.UnderlineSpan;
 //import android.util.Log;
 import android.widget.TextView;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
 public class UndoRedoHelper {
     private static final String TAG = UndoRedoHelper.class.getCanonicalName();
 

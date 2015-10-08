@@ -13,12 +13,12 @@ import com.google.common.collect.Range;
 import radsoft.syntaxhighlighter.brush.Brush;
 import radsoft.syntaxhighlighter.SyntaxHighlighter;
 
-public class SyntaxHiglighterWatcher implements TextWatcher
+public class SyntaxHighlighterWatcher implements TextWatcher
 {
     private Brush mBrush = SyntaxHighlighter.getBrushByName(null);
     private TextView mTextView;
 
-    public SyntaxHiglighterWatcher(TextView textView)
+    public SyntaxHighlighterWatcher(TextView textView)
     {
         mTextView = textView;
         mTextView.addTextChangedListener(this);

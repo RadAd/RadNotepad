@@ -4,15 +4,16 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 //import android.util.Log;
+
+// TODO
+// This could be changed from using EditText to using android.text.Selection
 
 import au.radsoft.R;
 import static au.radsoft.utils.CharSequenceUtils.*;
@@ -45,7 +46,6 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
  
         if (l !=null)
         {
-            
             LayoutInflater layoutInflater = LayoutInflater.from(getContext());
             View v = layoutInflater.inflate(R.layout.search_view_buttons, l, false);
             l.addView(v);

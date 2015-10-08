@@ -1,4 +1,4 @@
-package au.radsoft;
+package au.radsoft.widget;
 
 import android.content.Context;
 import android.graphics.Rect;

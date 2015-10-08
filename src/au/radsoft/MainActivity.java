@@ -22,6 +22,9 @@ import android.text.Layout;
 
 import java.io.File;
 
+import au.radsoft.widget.TextSearchView;
+import au.radsoft.widget.EditText;
+
 // TODO
 // Close search view when lose focus
 
@@ -46,7 +49,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     SubMenu mMenuScheme = null;
 
     UndoRedoHelper mUndoRedoHelper;
-    SyntaxHiglighterWatcher mSyntaxHiglighterWatcher;
+    SyntaxHighlighterWatcher mSyntaxHighlighterWatcher;
     boolean mWordWrap = false;
     TextFile mTextFile = new TextFile();
     long mLastModified = -1;
@@ -61,7 +64,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         mEdit.setHorizontallyScrolling(!mWordWrap); // bug when set in xml
         mUndoRedoHelper = new UndoRedoHelper(mEdit);
         mUndoRedoHelper.addHistoryChangedListener(this);
-        mSyntaxHiglighterWatcher = new SyntaxHiglighterWatcher(mEdit);
+        mSyntaxHighlighterWatcher = new SyntaxHighlighterWatcher(mEdit);
         mEdit.addSelectionChangedListener(this);
         mEdit.setCustomSelectionActionModeCallback(this);
         registerForContextMenu(mEdit);
@@ -193,7 +196,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
         mMenuScheme = menu.addSubMenu(R.string.action_scheme);
         mMenuScheme.add(GROUP_SCHEME, GROUP_SCHEME, Menu.NONE, "None");
-        java.util.Set<String> schemes = SyntaxHiglighterWatcher.getBrushList();
+        java.util.Set<String> schemes = SyntaxHighlighterWatcher.getBrushList();
         for (String scheme : schemes)
             mMenuScheme.add(GROUP_SCHEME, GROUP_SCHEME, Menu.NONE, scheme);
         mMenuScheme.setGroupCheckable(GROUP_SCHEME, true, true);
@@ -202,7 +205,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         updateShareActionProvider();
 
         final MenuItem menuSearch = menu.findItem(R.id.action_search);
-        au.radsoft.widget.TextSearchView searchView = (au.radsoft.widget.TextSearchView) menuSearch.getActionView();
+        TextSearchView searchView = (TextSearchView) menuSearch.getActionView();
         searchView.setQueryHint(getResources().getString(R.string.search_query_hint));
         searchView.attach(mEdit);
 
@@ -320,7 +323,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 break;
 
             case GROUP_SCHEME:
-                mSyntaxHiglighterWatcher.setBrushByName(item.getTitle().toString());
+                mSyntaxHighlighterWatcher.setBrushByName(item.getTitle().toString());
                 updateStatusBrush();
                 break;
 
@@ -368,7 +371,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
         if (mMenuScheme != null)
         {
-            String brushName = mSyntaxHiglighterWatcher.getBrushName();
+            String brushName = mSyntaxHighlighterWatcher.getBrushName();
             if (brushName.isEmpty())
                 brushName = "None";
             for (int i = 0; i < mMenuScheme.size(); ++i)
@@ -519,7 +522,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
     void updateStatusBrush()
     {
-        mStatusBrush.setText(mSyntaxHiglighterWatcher.getBrushName());
+        mStatusBrush.setText(mSyntaxHighlighterWatcher.getBrushName());
     }
 
     static void Enable(MenuItem mi, boolean enable)
@@ -564,7 +567,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
         getActionBar().setSubtitle(uri != null ? uri.getLastPathSegment() : null);
 
-        mSyntaxHiglighterWatcher.setBrushByExtension(Utils.getFileExtension(uri));
+        mSyntaxHighlighterWatcher.setBrushByExtension(Utils.getFileExtension(uri));
         updateStatusBrush();
 
         invalidateOptionsMenu();
