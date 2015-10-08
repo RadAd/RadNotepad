@@ -11,6 +11,7 @@ import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.widget.ShareActionProvider;
 import android.widget.TextView;
@@ -145,7 +146,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             {
                 Uri uri = data.getData();
                 if (uri == null)
-                    toast("Invalid file");
+                    toast(R.string.invalid_file);
                 else
                 {
                     setUri(uri);
@@ -159,7 +160,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             {
                 Uri uri = data.getData();
                 if (uri == null)
-                    toast("Invalid file");
+                    toast(R.string.invalid_file);
                 else
                 {
                     setUri(uri);
@@ -192,7 +193,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
         final MenuItem menuSearch = menu.findItem(R.id.action_search);
         au.radsoft.widget.TextSearchView searchView = (au.radsoft.widget.TextSearchView) menuSearch.getActionView();
-        searchView.setQueryHint("Search in file");
+        searchView.setQueryHint(getResources().getString(R.string.search_query_hint));
         searchView.attach(mEdit);
 
         return super.onCreateOptionsMenu(menu);
@@ -316,7 +317,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         }
         catch (android.content.ActivityNotFoundException ex)
         {
-            toast("No activity found.");
+            toast(R.string.no_activity_found);
             return false;
         }
     }
@@ -395,7 +396,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         MenuInflater inflater = /*mode.*/getMenuInflater();
         inflater.inflate(R.menu.selection, menu);
         //menu.removeItem(android.R.id.selectAll);
-        toast("onCreateActionMode");
         return true;
     }
 
@@ -586,8 +586,17 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         startActivity(intent);
     }
 
-    void toast(String msg)
+    
+    private void toast(int fmt, Object... args)
     {
+        String msg = getResources().getString(fmt, args);
+        Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
+        toast.show();
+    }
+    
+    private void toast(String fmt, Object... args)
+    {
+        String msg = String.format(fmt, args);
         Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
         toast.show();
     }

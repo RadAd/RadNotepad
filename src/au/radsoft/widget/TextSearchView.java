@@ -98,14 +98,14 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
             case R.id.search_forward:
                 if (!findHighlight(query, mTextView.getSelectionEnd(), true))
                 {
-                    toast("'%s' not found", query);
+                    toast(R.string.not_found, query);
                 }
                 break;
                 
             case R.id.search_back:
                 if (!findHighlight(query, mTextView.getSelectionStart(), false))
                 {
-                    toast("'%s' not found", query);
+                    toast(R.string.not_found, query);
                 }
                 break;
                 
@@ -189,7 +189,7 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
         //Log.i(_tag, String.format("onQueryTextSubmit: '%s'", query));
         if (!findHighlight(query, mTextView.getSelectionEnd(), true))
         {
-            toast("'%s' not found", query);
+            toast(R.string.not_found, query);
         }
         return true;
     }
@@ -227,8 +227,7 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
     
     private void toast(int fmt, Object... args)
     {
-        getResources().getString(fmt, args);
-        String msg = String.format(fmt, args);
+        String msg = getResources().getString(fmt, args);
         Toast toast = Toast.makeText(getContext(), msg, Toast.LENGTH_LONG);
         toast.show();
     }

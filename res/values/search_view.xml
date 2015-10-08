@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_backwards">Search Backwards</string>
+    <string name="search_forwards">Search Forwards</string>
+    <string name="search_case_sensitive">Search Case Sensitive</string>
+    <string name="search_query_hint">Search in file</string>
+</resources>

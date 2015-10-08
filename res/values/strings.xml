@@ -22,10 +22,9 @@
     <string name="status_le_unix_short">LF</string>
     <string name="status_le_mac_short">CR</string>
     <string name="action_line_ending">Line ending...</string>
+    <string name="action_scheme">Scheme...</string>
     <string name="selection_change_case">Change case</string>
-    <string name="search_backwards">Search Backwards</string>
-    <string name="search_forwards">Search Forwards</string>
-    <string name="search_case_sensitive">Search Case Sensitive</string>
-    <string name="yes">Yes</string> <!-- Android yes is actually ok -->
-    <string name="no">No</string> <!-- Android no is actually cancel -->
+    <string name="not_found">\'%s\' not found</string>
+    <string name="invalid_file">Invalid file</string>
+    <string name="no_activity_found">No activity found</string>
 </resources>
