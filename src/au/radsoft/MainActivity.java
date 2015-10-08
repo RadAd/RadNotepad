@@ -28,9 +28,11 @@ import java.io.File;
 public class MainActivity extends Activity implements EditText.SelectionChangedListener, UndoRedoHelper.HistoryChangedListener, ActionMode.Callback
 {
     private static final String TAG = MainActivity.class.getCanonicalName();
-    
+
     static final int ACTIVITY_OPEN_FILE = 1;
     static final int ACTIVITY_SAVE_FILE = 2;
+
+    static final int GROUP_SCHEME = 100;
 
     EditText mEdit;
 
@@ -41,7 +43,8 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
     ActionMode mActionMode = null;
     ShareActionProvider myShareActionProvider = null;
-    
+    SubMenu mMenuScheme = null;
+
     UndoRedoHelper mUndoRedoHelper;
     SyntaxHiglighterWatcher mSyntaxHiglighterWatcher;
     boolean mWordWrap = false;
@@ -99,7 +102,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         mTextFile = Utils.ifNull((TextFile) state.getParcelable(TAG + ".file"), mTextFile);
         mLastModified = Utils.getLastModified(mTextFile.mUri);
         mWordWrap = state.getBoolean(TAG + ".wordwrap");
-        
+
         setUri(mTextFile.mUri);
     }
 
@@ -187,6 +190,13 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.options, menu);
+
+        mMenuScheme = menu.addSubMenu(R.string.action_scheme);
+        mMenuScheme.add(GROUP_SCHEME, GROUP_SCHEME, Menu.NONE, "None");
+        java.util.Set<String> schemes = SyntaxHiglighterWatcher.getBrushList();
+        for (String scheme : schemes)
+            mMenuScheme.add(GROUP_SCHEME, GROUP_SCHEME, Menu.NONE, scheme);
+        mMenuScheme.setGroupCheckable(GROUP_SCHEME, true, true);
 
         myShareActionProvider = (ShareActionProvider) menu.findItem(R.id.action_share).getActionProvider();
         updateShareActionProvider();
@@ -309,6 +319,11 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 sendChooser();
                 break;
 
+            case GROUP_SCHEME:
+                mSyntaxHiglighterWatcher.setBrushByName(item.getTitle().toString());
+                updateStatusBrush();
+                break;
+
             default:
                 return false;
             }
@@ -349,6 +364,19 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         case TextFile.LE_MAC:
             Check(menu.findItem(R.id.action_le_mac), true);
             break;
+        }
+
+        if (mMenuScheme != null)
+        {
+            String brushName = mSyntaxHiglighterWatcher.getBrushName();
+            if (brushName.isEmpty())
+                brushName = "None";
+            for (int i = 0; i < mMenuScheme.size(); ++i)
+            {
+                MenuItem mi = mMenuScheme.getItem(i);
+                if (mi.getTitle().equals(brushName))
+                    mi.setChecked(true);
+            }
         }
 
         return super.onPrepareOptionsMenu(menu);
@@ -536,7 +564,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
         getActionBar().setSubtitle(uri != null ? uri.getLastPathSegment() : null);
 
-        mSyntaxHiglighterWatcher.setBrush(Utils.getFileExtension(uri));
+        mSyntaxHiglighterWatcher.setBrushByExtension(Utils.getFileExtension(uri));
         updateStatusBrush();
 
         invalidateOptionsMenu();
@@ -586,14 +614,14 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         startActivity(intent);
     }
 
-    
+
     private void toast(int fmt, Object... args)
     {
         String msg = getResources().getString(fmt, args);
         Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
         toast.show();
     }
-    
+
     private void toast(String fmt, Object... args)
     {
         String msg = String.format(fmt, args);

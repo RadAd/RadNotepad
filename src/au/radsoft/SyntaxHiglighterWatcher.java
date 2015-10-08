@@ -7,6 +7,7 @@ import android.text.TextWatcher;
 import android.widget.TextView;
 
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.collect.Range;
 import radsoft.syntaxhighlighter.brush.Brush;
@@ -14,7 +15,7 @@ import radsoft.syntaxhighlighter.SyntaxHighlighter;
 
 public class SyntaxHiglighterWatcher implements TextWatcher
 {
-    private Brush mBrush = null;
+    private Brush mBrush = SyntaxHighlighter.getBrushByName(null);
     private TextView mTextView;
 
     public SyntaxHiglighterWatcher(TextView textView)
@@ -25,12 +26,22 @@ public class SyntaxHiglighterWatcher implements TextWatcher
     
     String getBrushName()
     {
-        return (mBrush != null) ? mBrush.getName() : "";
+        return mBrush.getName();
     }
     
-    void setBrush(String fileExtension)
+    void setBrushByExtension(String fileExtension)
     {
-        mBrush = SyntaxHighlighter.getBrush(fileExtension);
+        mBrush = SyntaxHighlighter.getBrushByExtension(fileExtension);
+        highlightSyntax((Spannable) mTextView.getText(), mBrush, 0, mTextView.getText().length());
+    }
+    
+    void setBrushByName(String name)
+    {
+        if (getBrushName().equals(name))
+            return;
+        
+        mBrush = SyntaxHighlighter.getBrushByName(name);
+        highlightSyntax((Spannable) mTextView.getText(), mBrush, 0, mTextView.getText().length());
     }
     
     @Override //TextWatcher
@@ -43,7 +54,7 @@ public class SyntaxHiglighterWatcher implements TextWatcher
     public void onTextChanged(CharSequence s, int start, int before, int count)
     {
         Layout layout = mTextView.getLayout();
-        if (layout != null && mBrush != null)
+        if (layout != null)
         {
             int lineBegin = layout.getLineForOffset(start);
             int lineEnd = layout.getLineForOffset(start + count);
@@ -115,5 +126,17 @@ public class SyntaxHiglighterWatcher implements TextWatcher
         android.text.style.ForegroundColorSpan[] spans = spannable.getSpans(start, end, android.text.style.ForegroundColorSpan.class);
         for (Object s : spans)
             spannable.removeSpan(s);
+    }
+    
+    static Set<String> getBrushList()
+    {
+        Set<String> brushNames = new java.util.TreeSet<String>();
+        
+        for (Brush brush : SyntaxHighlighter.getBrushes().values())
+        {
+            brushNames.add(brush.getName());
+        }
+        
+        return brushNames;
     }
 }
