@@ -12,7 +12,7 @@
         android:layout_weight="1"
         android:gravity="center" >
     
-        <au.radsoft.EditText
+        <au.radsoft.widget.EditText
             android:id="@+id/edit"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
