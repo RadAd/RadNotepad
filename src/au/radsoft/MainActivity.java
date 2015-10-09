@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.ActionMode;
 import android.view.ContextMenu;
@@ -28,7 +29,7 @@ import au.radsoft.widget.EditText;
 // TODO
 // Close search view when lose focus
 
-public class MainActivity extends Activity implements EditText.SelectionChangedListener, UndoRedoHelper.HistoryChangedListener, ActionMode.Callback
+public class MainActivity extends Activity implements EditText.SelectionChangedListener, UndoRedoHelper.HistoryChangedListener, ActionMode.Callback, SharedPreferences.OnSharedPreferenceChangeListener
 {
     private static final String TAG = MainActivity.class.getCanonicalName();
 
@@ -58,6 +59,10 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        
+        SharedPreferences sharedPref = Preferences.init(this);
+        sharedPref.registerOnSharedPreferenceChangeListener(this);
+
         setContentView(R.layout.main);
 
         mEdit = (EditText) findViewById(R.id.edit);
@@ -86,6 +91,8 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 open();
             }
         }
+        
+        onSharedPreferenceChanged(sharedPref, null);
     }
 
     @Override
@@ -306,6 +313,10 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 mUndoRedoHelper.markSaved(false);
                 break;
 
+            case R.id.action_settings:
+                Preferences.show(this);
+                break;
+
             case R.id.select_all:
                 mEdit.selectAll();
                 break;
@@ -441,6 +452,17 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     public boolean onPrepareActionMode(ActionMode mode, Menu menu)
     {
         return onPrepareOptionsMenu(menu);
+    }
+    
+    @Override // OnSharedPreferenceChangeListener
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
+    {
+        //toast("Pref changed " + key);
+        if (key == null || key.equals(Preferences.PREF_FONT_SIZE))
+        {
+            int size = sharedPreferences.getInt(Preferences.PREF_FONT_SIZE, Preferences.PREF_FONT_SIZE_DEFAULT);
+            mEdit.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PT, size);
+        }
     }
 
     void checkSave(String msg, final Runnable cb)

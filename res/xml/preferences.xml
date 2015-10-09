@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <au.radsoft.preferences.EditIntegerPreference
+        android:key="pref_font_size"
+        android:defaultValue="10"
+        android:inputType="number"
+        android:summary="@string/pref_font_size_summary"
+        android:dialogTitle="@string/pref_font_size"
+        android:title="@string/pref_font_size" />
+</PreferenceScreen>
