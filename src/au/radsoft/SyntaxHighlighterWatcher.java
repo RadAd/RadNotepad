@@ -16,6 +16,7 @@ import radsoft.syntaxhighlighter.SyntaxHighlighter;
 public class SyntaxHighlighterWatcher implements TextWatcher
 {
     private Brush mBrush = SyntaxHighlighter.getBrushByName(null);
+    private Theme mTheme = Theme.getThemeByName(null);
     private TextView mTextView;
 
     public SyntaxHighlighterWatcher(TextView textView)
@@ -32,7 +33,7 @@ public class SyntaxHighlighterWatcher implements TextWatcher
     void setBrushByExtension(String fileExtension)
     {
         mBrush = SyntaxHighlighter.getBrushByExtension(fileExtension);
-        highlightSyntax((Spannable) mTextView.getText(), mBrush, 0, mTextView.getText().length());
+        highlightSyntax((Spannable) mTextView.getText(), mBrush, mTheme, 0, mTextView.getText().length());
     }
     
     void setBrushByName(String name)
@@ -41,7 +42,7 @@ public class SyntaxHighlighterWatcher implements TextWatcher
             return;
         
         mBrush = SyntaxHighlighter.getBrushByName(name);
-        highlightSyntax((Spannable) mTextView.getText(), mBrush, 0, mTextView.getText().length());
+        highlightSyntax((Spannable) mTextView.getText(), mBrush, mTheme, 0, mTextView.getText().length());
     }
     
     @Override //TextWatcher
@@ -65,13 +66,13 @@ public class SyntaxHighlighterWatcher implements TextWatcher
             int lineBeginOffset = layout.getLineStart(lineBegin);
             int lineEndOffset = layout.getLineEnd(lineEnd);
             
-            highlightSyntax((Spannable) mTextView.getText(), mBrush, lineBeginOffset, lineEndOffset);
+            highlightSyntax((Spannable) mTextView.getText(), mBrush, mTheme, lineBeginOffset, lineEndOffset);
         }
         
         //invalidateOptionsMenu();
     }
     
-    private static void highlightSyntax(Spannable spannable, Brush brush, int start, int end)
+    private static void highlightSyntax(Spannable spannable, Brush brush, Theme theme, int start, int end)
     {
         if (brush != null)
         {
@@ -81,38 +82,9 @@ public class SyntaxHighlighterWatcher implements TextWatcher
             Map<Range<Integer>, String> regionList = sh.parse(spannable, start, end);
             for (Map.Entry<Range<Integer>, String> r : regionList.entrySet())
             {
-                int color = 0;
-                switch (r.getValue())
-                {
-                case Brush.PREPROCESSOR:
-                    color = 0xFFFF6820;
-                    break;
-                    
-                case Brush.KEYWORD:
-                    color = 0xFF00FFFF;
-                    break;
-                    
-                case Brush.STRING:
-                case Brush.VALUE:
-                //case Brush.LITERAL:
-                    color = 0xFFFF00FF;
-                    break;
-                    
-                //case Brush.LABEL:
-                case Brush.COLOR1:
-                    color = 0xFFFFFF00;
-                    break;
-                    
-                case Brush.VARIABLE:
-                    color = 0xFF007F7F;
-                    break;
-                    
-                case Brush.COMMENTS:
-                    color = 0xFF00FF00;
-                    break;
-                }
-                Object span = new android.text.style.ForegroundColorSpan(color);
-                spannable.setSpan(span, r.getKey().lowerEndpoint(), r.getKey().upperEndpoint(), android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                Object[] spans = theme.getSpans(r.getValue());
+                for (Object span : spans)
+                    spannable.setSpan(span, r.getKey().lowerEndpoint(), r.getKey().upperEndpoint(), android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
         else
@@ -123,6 +95,12 @@ public class SyntaxHighlighterWatcher implements TextWatcher
     
     private static void remove(Spannable spannable, int start, int end)
     {
+        for (Class<Object> c : Theme.getSpanTypes())
+        {
+            Object[] spans = spannable.getSpans(start, end, c);
+            for (Object s : spans)
+                spannable.removeSpan(s);
+        }
         android.text.style.ForegroundColorSpan[] spans = spannable.getSpans(start, end, android.text.style.ForegroundColorSpan.class);
         for (Object s : spans)
             spannable.removeSpan(s);
