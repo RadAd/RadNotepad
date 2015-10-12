@@ -25,6 +25,7 @@ import java.io.File;
 
 import au.radsoft.widget.TextSearchView;
 import au.radsoft.widget.EditText;
+import au.radsoft.preferences.PreferenceActivity;
 
 // TODO
 // Close search view when lose focus
@@ -36,6 +37,9 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     static final int ACTIVITY_OPEN_FILE = 1;
     static final int ACTIVITY_SAVE_FILE = 2;
 
+    public static final int PREF_FONT_SIZE_DEFAULT = 10;
+    public static final String PREF_FONT_SIZE = "pref_font_size";
+    
     static final int GROUP_SCHEME = 100;
 
     EditText mEdit;
@@ -60,7 +64,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     {
         super.onCreate(savedInstanceState);
         
-        SharedPreferences sharedPref = Preferences.init(this);
+        SharedPreferences sharedPref = PreferenceActivity.init(this, R.xml.preferences);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
 
         setContentView(R.layout.main);
@@ -314,7 +318,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 break;
 
             case R.id.action_settings:
-                Preferences.show(this);
+                PreferenceActivity.show(this, R.xml.preferences);
                 break;
 
             case R.id.select_all:
@@ -458,9 +462,9 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
     {
         //toast("Pref changed " + key);
-        if (key == null || key.equals(Preferences.PREF_FONT_SIZE))
+        if (key == null || key.equals(PREF_FONT_SIZE))
         {
-            int size = sharedPreferences.getInt(Preferences.PREF_FONT_SIZE, Preferences.PREF_FONT_SIZE_DEFAULT);
+            int size = sharedPreferences.getInt(PREF_FONT_SIZE, PREF_FONT_SIZE_DEFAULT);
             mEdit.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PT, size);
         }
     }

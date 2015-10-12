@@ -31,7 +31,7 @@
                 <data android:mimeType="text/*" />
             </intent-filter>
         </activity>
-        <activity android:name=".Preferences" >
+        <activity android:name="au.radsoft.preferences.PreferenceActivity" >
         </activity>
     </application>
 </manifest>
