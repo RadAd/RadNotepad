@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
                   xmlns:app="http://schemas.android.com/apk/res-auto" >
+
     <au.radsoft.preferences.EditIntegerPreference
         android:key="pref_font_size"
         android:defaultValue="10"
-        android:inputType="number"
         android:summary="@string/pref_font_size_summary"
         android:dialogTitle="@string/pref_font_size"
         android:title="@string/pref_font_size"
         app:minValue="1" app:maxValue="50" />
+
+    <!-- it seems android doesnt have a mime type for ttf files -->
+    <au.radsoft.preferences.EditUriPreference
+        android:key="pref_font_file"
+        app:mimeType="application/octet-stream"
+        android:summary="@string/pref_font_file_summary"
+        android:dialogTitle="@string/pref_font_file"
+        android:title="@string/pref_font_file" />
         
 </PreferenceScreen>

@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.ActionMode;
 import android.view.ContextMenu;
@@ -39,6 +40,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
     public static final int PREF_FONT_SIZE_DEFAULT = 10;
     public static final String PREF_FONT_SIZE = "pref_font_size";
+    public static final String PREF_FONT_FILE = "pref_font_file";
     
     static final int GROUP_SCHEME = 100;
 
@@ -466,6 +468,30 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         {
             int size = sharedPreferences.getInt(PREF_FONT_SIZE, PREF_FONT_SIZE_DEFAULT);
             mEdit.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PT, size);
+        }
+        
+        if (key == null || key.equals(PREF_FONT_FILE))
+        {
+            String fontFile = sharedPreferences.getString(PREF_FONT_FILE, "");
+            if (fontFile != null && !fontFile.isEmpty())
+            {
+                try
+                {
+                    Typeface typeface = Typeface.createFromFile(fontFile);
+                    if (typeface != null)
+                        mEdit.setTypeface(typeface);
+                    else
+                        toast(R.string.error_loading_font_file);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                    toast(R.string.error_loading_font_file);
+                    mEdit.setTypeface(Typeface.MONOSPACE);
+                }
+            }
+            else
+                mEdit.setTypeface(Typeface.MONOSPACE);
         }
     }
 

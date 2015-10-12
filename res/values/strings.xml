@@ -28,4 +28,5 @@
     <string name="not_found">\'%s\' not found</string>
     <string name="invalid_file">Invalid file</string>
     <string name="no_activity_found">No activity found</string>
+    <string name="error_loading_font_file">Error loading font file</string>
 </resources>

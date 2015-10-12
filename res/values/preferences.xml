@@ -2,4 +2,6 @@
 <resources>
     <string name="pref_font_size">Font Size</string>
     <string name="pref_font_size_summary">The point size of the font</string>
+    <string name="pref_font_file">TTF Font File</string>
+    <string name="pref_font_file_summary">The ttf file for the font</string>
 </resources>
