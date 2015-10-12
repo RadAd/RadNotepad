@@ -51,11 +51,6 @@ public class EditIntegerPreference extends EditTextPreference
     }
 
     @Override
-    public String Text() {
-        return String.valueOf(getValue());
-    }
-    
-    @Override
     public void setText(String text) {
         getSharedPreferences().edit().putInt(getKey(), Integer.parseInt(text)).commit();
     }
