@@ -15,14 +15,16 @@ import radsoft.syntaxhighlighter.SyntaxHighlighter;
 
 public class SyntaxHighlighterWatcher implements TextWatcher
 {
-    private Brush mBrush = SyntaxHighlighter.getBrushByName(null);
-    private Theme mTheme = Theme.getThemeByName(null);
+    private Brush mBrush = SyntaxHighlighter.getBrushByName("");
+    private Theme mTheme = Theme.getThemeByName("");
     private TextView mTextView;
 
     public SyntaxHighlighterWatcher(TextView textView)
     {
         mTextView = textView;
         mTextView.addTextChangedListener(this);
+        mTextView.setTextColor(mTheme.getFgColor());
+        mTextView.setBackgroundColor(mTheme.getBgColor());
     }
     
     String getBrushName()
@@ -95,7 +97,7 @@ public class SyntaxHighlighterWatcher implements TextWatcher
     
     private static void remove(Spannable spannable, int start, int end)
     {
-        for (Class<Object> c : Theme.getSpanTypes())
+        for (Class<? extends Object> c : Theme.getSpanTypes())
         {
             Object[] spans = spannable.getSpans(start, end, c);
             for (Object s : spans)
