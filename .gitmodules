@@ -1,0 +1,3 @@
+[submodule "RadPreferences"]
+	path = RadPreferences
+	url = https://github.com/RadAd/RadPreferences.git
