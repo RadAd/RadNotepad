@@ -7,9 +7,25 @@
     <string name="pref_font_theme">Font Theme</string>
     <string name="pref_font_theme_summary">The colour theme for the font</string>
     
-    <string name="pref_font_theme_default">Default</string>
+    <string name="pref_font_theme_default">default</string>
     <string-array name="pref_font_theme_entries">
-        <item>@string/pref_font_theme_default</item>
+        <item>Default</item>
         <item>Django</item>
+        <item>Eclipse</item>
+        <item>Emacs</item>
+        <item>Fade to Grey</item>
+        <item>MD Ultra</item>
+        <item>Midnight</item>
+        <item>R Dark</item>
+    </string-array>
+    <string-array name="pref_font_theme_values">
+        <item>@string/pref_font_theme_default</item>
+        <item>django</item>
+        <item>eclipse</item>
+        <item>emacs</item>
+        <item>fade_to_grey</item>
+        <item>md_ultra</item>
+        <item>midnight</item>
+        <item>rdark</item>
     </string-array>
 </resources>

@@ -22,7 +22,7 @@
         android:key="pref_font_theme"
         android:defaultValue="@string/pref_font_theme_default"
         android:entries="@array/pref_font_theme_entries"
-        android:entryValues="@array/pref_font_theme_entries"
+        android:entryValues="@array/pref_font_theme_values"
         android:summary="@string/pref_font_theme_summary"
         android:dialogTitle="@string/pref_font_theme"
         android:title="@string/pref_font_theme" />
