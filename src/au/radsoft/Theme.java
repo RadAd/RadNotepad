@@ -244,6 +244,7 @@ public class Theme
     
     static Class<? extends Object>[] getSpanTypes()
     {
+        @SuppressWarnings("unchecked")
         Class<? extends Object>[] types = new Class[]
             {
                 ForegroundColorSpan.class,
