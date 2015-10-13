@@ -30,6 +30,7 @@ import au.radsoft.preferences.PreferenceActivity;
 
 // TODO
 // Close search view when lose focus
+// Support for links
 
 public class MainActivity extends Activity implements EditText.SelectionChangedListener, UndoRedoHelper.HistoryChangedListener, ActionMode.Callback, SharedPreferences.OnSharedPreferenceChangeListener
 {
@@ -41,6 +42,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     public static final int PREF_FONT_SIZE_DEFAULT = 10;
     public static final String PREF_FONT_SIZE = "pref_font_size";
     public static final String PREF_FONT_FILE = "pref_font_file";
+    public static final String PREF_FONT_THEME = "pref_font_theme";
     
     static final int GROUP_SCHEME = 100;
 
@@ -75,7 +77,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         mEdit.setHorizontallyScrolling(!mWordWrap); // bug when set in xml
         mUndoRedoHelper = new UndoRedoHelper(mEdit);
         mUndoRedoHelper.addHistoryChangedListener(this);
-        mSyntaxHighlighterWatcher = new SyntaxHighlighterWatcher(mEdit);
+        mSyntaxHighlighterWatcher = new SyntaxHighlighterWatcher(mEdit, sharedPref.getString(PREF_FONT_THEME, ""));
         mEdit.addSelectionChangedListener(this);
         mEdit.setCustomSelectionActionModeCallback(this);
         registerForContextMenu(mEdit);
@@ -208,7 +210,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         inflater.inflate(R.menu.options, menu);
 
         mMenuScheme = menu.addSubMenu(R.string.action_scheme);
-        mMenuScheme.add(GROUP_SCHEME, GROUP_SCHEME, Menu.NONE, "None");
+        mMenuScheme.add(GROUP_SCHEME, GROUP_SCHEME, Menu.NONE, R.string.action_scheme_none);
         java.util.Set<String> schemes = SyntaxHighlighterWatcher.getBrushList();
         for (String scheme : schemes)
             mMenuScheme.add(GROUP_SCHEME, GROUP_SCHEME, Menu.NONE, scheme);
@@ -472,26 +474,28 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         
         if (key == null || key.equals(PREF_FONT_FILE))
         {
+            Typeface typeface = Typeface.MONOSPACE;
+            
             String fontFile = sharedPreferences.getString(PREF_FONT_FILE, "");
             if (fontFile != null && !fontFile.isEmpty())
             {
                 try
                 {
-                    Typeface typeface = Typeface.createFromFile(fontFile);
-                    if (typeface != null)
-                        mEdit.setTypeface(typeface);
-                    else
-                        toast(R.string.error_loading_font_file);
+                    typeface = Typeface.createFromFile(fontFile);
                 }
                 catch (Exception e)
                 {
                     e.printStackTrace();
                     toast(R.string.error_loading_font_file);
-                    mEdit.setTypeface(Typeface.MONOSPACE);
                 }
             }
-            else
-                mEdit.setTypeface(Typeface.MONOSPACE);
+            
+            mEdit.setTypeface(typeface);
+        }
+        
+        if (key == null || key.equals(PREF_FONT_THEME))
+        {
+            mSyntaxHighlighterWatcher.setThemeByName(sharedPreferences.getString(PREF_FONT_THEME, ""));
         }
     }
 

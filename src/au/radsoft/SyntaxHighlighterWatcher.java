@@ -16,15 +16,15 @@ import radsoft.syntaxhighlighter.SyntaxHighlighter;
 public class SyntaxHighlighterWatcher implements TextWatcher
 {
     private Brush mBrush = SyntaxHighlighter.getBrushByName("");
-    private Theme mTheme = Theme.getThemeByName("");
+    private Theme mTheme = null;
     private TextView mTextView;
 
-    public SyntaxHighlighterWatcher(TextView textView)
+    public SyntaxHighlighterWatcher(TextView textView, String theme)
     {
         mTextView = textView;
         mTextView.addTextChangedListener(this);
-        mTextView.setTextColor(mTheme.getFgColor());
-        mTextView.setBackgroundColor(mTheme.getBgColor());
+        
+        setThemeByName(theme);
     }
     
     String getBrushName()
@@ -44,6 +44,18 @@ public class SyntaxHighlighterWatcher implements TextWatcher
             return;
         
         mBrush = SyntaxHighlighter.getBrushByName(name);
+        highlightSyntax((Spannable) mTextView.getText(), mBrush, mTheme, 0, mTextView.getText().length());
+    }
+    
+    void setThemeByName(String name)
+    {
+        if (mTheme != null && mTheme.getName().equals(name))
+            return;
+        
+        mTheme = Theme.getThemeByName(name);
+        mTextView.setTextColor(mTheme.getFgColor());
+        mTextView.setBackgroundColor(mTheme.getBgColor());
+        mTextView.setHighlightColor(mTheme.getHlColor());
         highlightSyntax((Spannable) mTextView.getText(), mBrush, mTheme, 0, mTextView.getText().length());
     }
     

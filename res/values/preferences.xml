@@ -4,4 +4,12 @@
     <string name="pref_font_size_summary">The point size of the font</string>
     <string name="pref_font_file">TTF Font File</string>
     <string name="pref_font_file_summary">The ttf file for the font</string>
+    <string name="pref_font_theme">Font Theme</string>
+    <string name="pref_font_theme_summary">The colour theme for the font</string>
+    
+    <string name="pref_font_theme_default">Default</string>
+    <string-array name="pref_font_theme_entries">
+        <item>@string/pref_font_theme_default</item>
+        <item>Django</item>
+    </string-array>
 </resources>
