@@ -30,12 +30,12 @@ public class Theme
             theme.put(Brush.COMMENTS,       new Style().setFgColor(0x008200));
             theme.put(Brush.STRING,         new Style().setFgColor(0x0000ff));
             theme.put(Brush.KEYWORD,        new Style().setFgColor(0x006699).setStyle(Typeface.BOLD));
-            theme.put(Brush.PREPROCESSOR,   new Style().setFgColor(0x646464));
+            theme.put(Brush.PREPROCESSOR,   new Style().setFgColor(0x888888));
             theme.put(Brush.VARIABLE,       new Style().setFgColor(0xaa7700));
             theme.put(Brush.VALUE,          new Style().setFgColor(0x009900));
             theme.put(Brush.FUNCTIONS,      new Style().setFgColor(0xff1493));
             theme.put(Brush.CONSTANTS,      new Style().setFgColor(0x0066cc));
-            theme.put(Brush.COLOR1,         new Style().setFgColor(0x646464));
+            theme.put(Brush.COLOR1,         new Style().setFgColor(0x888888));
             theme.put(Brush.COLOR2,         new Style().setFgColor(0xff1493));
             theme.put(Brush.COLOR3,         new Style().setFgColor(0xff0000));
             break;
@@ -67,7 +67,7 @@ public class Theme
             theme.put(Brush.VALUE,          new Style().setFgColor(0x009900));
             theme.put(Brush.FUNCTIONS,      new Style().setFgColor(0xff1493));
             theme.put(Brush.CONSTANTS,      new Style().setFgColor(0x0066cc));
-            theme.put(Brush.COLOR1,         new Style().setFgColor(0x646464));
+            theme.put(Brush.COLOR1,         new Style().setFgColor(0x888888));
             theme.put(Brush.COLOR2,         new Style().setFgColor(0xff1493));
             theme.put(Brush.COLOR3,         new Style().setFgColor(0xff0000));
             break;
