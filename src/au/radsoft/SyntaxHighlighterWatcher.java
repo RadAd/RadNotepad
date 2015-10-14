@@ -115,9 +115,6 @@ public class SyntaxHighlighterWatcher implements TextWatcher
             for (Object s : spans)
                 spannable.removeSpan(s);
         }
-        android.text.style.ForegroundColorSpan[] spans = spannable.getSpans(start, end, android.text.style.ForegroundColorSpan.class);
-        for (Object s : spans)
-            spannable.removeSpan(s);
     }
     
     static Set<String> getBrushList()
