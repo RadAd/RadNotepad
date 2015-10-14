@@ -465,11 +465,13 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     @Override // OnSharedPreferenceChangeListener
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
     {
-        //toast("Pref changed " + key);
+        boolean updateTabs = false;
+        
         if (key == null || key.equals(PREF_FONT_SIZE))
         {
             int size = sharedPreferences.getInt(PREF_FONT_SIZE, PREF_FONT_SIZE_DEFAULT);
             mEdit.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PT, size);
+            updateTabs = true;
         }
         
         if (key == null || key.equals(PREF_FONT_FILE))
@@ -491,12 +493,16 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             }
             
             mEdit.setTypeface(typeface);
+            updateTabs = true;
         }
         
         if (key == null || key.equals(PREF_FONT_THEME))
         {
             mSyntaxHighlighterWatcher.setThemeByName(sharedPreferences.getString(PREF_FONT_THEME, ""));
         }
+        
+        if (updateTabs)
+            setTabs();
     }
 
     void checkSave(String msg, final Runnable cb)
@@ -548,6 +554,17 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             }
         }
         super.onCreateContextMenu(menu, view, menuInfo);
+    }
+    
+    void setTabs()
+    {
+        Editable e = mEdit.getEditableText();
+        e.removeSpan(android.text.style.TabStopSpan.Standard.class);
+        
+        int s = 4;  // TODO Get from preferences
+        float w = mEdit.getPaint().measureText("                    ", 0, s);
+        for (int i = 0; i < (80/s); ++i)
+            e.setSpan(new android.text.style.TabStopSpan.Standard((int)(i*w + 0.5)), 0, e.length(), android.text.Spanned.SPAN_INCLUSIVE_INCLUSIVE);
     }
 
     void updateStatusLineEnding()
@@ -760,6 +777,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             }
             else
                 mEdit.setText(result[0]);
+            setTabs();
             updateStatusLineEnding();
             updateStatusFileEncoding();
             mUndoRedoHelper.clearHistory();
