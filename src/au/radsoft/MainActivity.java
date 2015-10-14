@@ -19,6 +19,7 @@ import android.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.net.Uri;
+import android.text.style.TabStopSpan;
 import android.text.Editable;
 import android.text.Layout;
 
@@ -40,9 +41,11 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     static final int ACTIVITY_SAVE_FILE = 2;
 
     public static final int PREF_FONT_SIZE_DEFAULT = 10;
+    public static final int PREF_TAB_SIZE_DEFAULT = 4;
     public static final String PREF_FONT_SIZE = "pref_font_size";
     public static final String PREF_FONT_FILE = "pref_font_file";
     public static final String PREF_FONT_THEME = "pref_font_theme";
+    public static final String PREF_TAB_SIZE = "pref_tab_size";
     
     static final int GROUP_SCHEME = 100;
 
@@ -501,8 +504,13 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             mSyntaxHighlighterWatcher.setThemeByName(sharedPreferences.getString(PREF_FONT_THEME, ""));
         }
         
+        if (key == null || key.equals(PREF_TAB_SIZE))
+        {
+            updateTabs = true;
+        }
+        
         if (updateTabs)
-            setTabs();
+            setTabs(sharedPreferences);
     }
 
     void checkSave(String msg, final Runnable cb)
@@ -556,15 +564,17 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         super.onCreateContextMenu(menu, view, menuInfo);
     }
     
-    void setTabs()
+    void setTabs(SharedPreferences sharedPreferences)
     {
+        toast("settabs");
         Editable e = mEdit.getEditableText();
-        e.removeSpan(android.text.style.TabStopSpan.Standard.class);
+        for (TabStopSpan.Standard spanTabStop : e.getSpans(0, e.length(), TabStopSpan.Standard.class))
+            e.removeSpan(spanTabStop);
         
-        int s = 4;  // TODO Get from preferences
+        int s = sharedPreferences.getInt(PREF_TAB_SIZE, PREF_TAB_SIZE_DEFAULT);
         float w = mEdit.getPaint().measureText("                    ", 0, s);
         for (int i = 0; i < (80/s); ++i)
-            e.setSpan(new android.text.style.TabStopSpan.Standard((int)(i*w + 0.5)), 0, e.length(), android.text.Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+            e.setSpan(new TabStopSpan.Standard((int)(i*w + 0.5)), 0, e.length(), android.text.Spanned.SPAN_INCLUSIVE_INCLUSIVE);
     }
 
     void updateStatusLineEnding()
@@ -690,6 +700,10 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         startActivity(intent);
     }
 
+    SharedPreferences getDefaultSharedPreferences()
+    {
+        return android.preference.PreferenceManager.getDefaultSharedPreferences(this);
+    }
 
     private void toast(int fmt, Object... args)
     {
@@ -777,7 +791,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             }
             else
                 mEdit.setText(result[0]);
-            setTabs();
+            setTabs(getDefaultSharedPreferences());
             updateStatusLineEnding();
             updateStatusFileEncoding();
             mUndoRedoHelper.clearHistory();

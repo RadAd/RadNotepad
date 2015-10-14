@@ -6,6 +6,8 @@
     <string name="pref_font_file_summary">The ttf file for the font</string>
     <string name="pref_font_theme">Font Theme</string>
     <string name="pref_font_theme_summary">The colour theme for the font</string>
+    <string name="pref_tab_size">Tab Size</string>
+    <string name="pref_tab_size_summary">The number of characters in a tab space</string>
     
     <string name="pref_font_theme_default">default</string>
     <string-array name="pref_font_theme_entries">

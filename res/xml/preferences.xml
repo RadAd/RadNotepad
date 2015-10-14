@@ -26,5 +26,13 @@
         android:summary="@string/pref_font_theme_summary"
         android:dialogTitle="@string/pref_font_theme"
         android:title="@string/pref_font_theme" />
+
+    <au.radsoft.preferences.EditNumberPickerPreference
+        android:key="pref_tab_size"
+        android:defaultValue="4"
+        android:summary="@string/pref_tab_size_summary"
+        android:dialogTitle="@string/pref_tab_size"
+        android:title="@string/pref_tab_size"
+        app:minValue="1" app:maxValue="20" />
         
 </PreferenceScreen>
