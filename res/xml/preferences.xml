@@ -34,5 +34,11 @@
         android:dialogTitle="@string/pref_tab_size"
         android:title="@string/pref_tab_size"
         app:minValue="1" app:maxValue="20" />
+
+    <SwitchPreference
+        android:key="pref_word_wrap"
+        android:defaultValue="false"
+        android:summary="@string/pref_word_wrap_summary"
+        android:title="@string/pref_word_wrap" />
         
 </PreferenceScreen>

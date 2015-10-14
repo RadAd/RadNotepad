@@ -32,6 +32,11 @@ import au.radsoft.preferences.PreferenceActivity;
 // TODO
 // Close search view when lose focus
 // Support for links
+// Expand selection
+// Indent/Unindent selection
+// Comment/Uncomment selection
+// Remove keyboard suggestions
+// Auto save
 
 public class MainActivity extends Activity implements EditText.SelectionChangedListener, UndoRedoHelper.HistoryChangedListener, ActionMode.Callback, SharedPreferences.OnSharedPreferenceChangeListener
 {
@@ -42,10 +47,13 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
     public static final int PREF_FONT_SIZE_DEFAULT = 10;
     public static final int PREF_TAB_SIZE_DEFAULT = 4;
+    public static final boolean PREF_WORD_WRAP_DEFAULT = false;
+    
     public static final String PREF_FONT_SIZE = "pref_font_size";
     public static final String PREF_FONT_FILE = "pref_font_file";
     public static final String PREF_FONT_THEME = "pref_font_theme";
     public static final String PREF_TAB_SIZE = "pref_tab_size";
+    public static final String PREF_WORD_WRAP = "pref_word_wrap";
     
     static final int GROUP_SCHEME = 100;
 
@@ -62,7 +70,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
     UndoRedoHelper mUndoRedoHelper;
     SyntaxHighlighterWatcher mSyntaxHighlighterWatcher;
-    boolean mWordWrap = false;
     TextFile mTextFile = new TextFile();
     long mLastModified = -1;
 
@@ -77,7 +84,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         setContentView(R.layout.main);
 
         mEdit = (EditText) findViewById(R.id.edit);
-        mEdit.setHorizontallyScrolling(!mWordWrap); // bug when set in xml
         mUndoRedoHelper = new UndoRedoHelper(mEdit);
         mUndoRedoHelper.addHistoryChangedListener(this);
         mSyntaxHighlighterWatcher = new SyntaxHighlighterWatcher(mEdit, sharedPref.getString(PREF_FONT_THEME, ""));
@@ -112,7 +118,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         super.onSaveInstanceState(state);
         mUndoRedoHelper.onSaveInstanceState(state);
         state.putParcelable(TAG + ".file", mTextFile);
-        state.putBoolean(TAG + ".wordwrap", mWordWrap);
     }
 
     @Override
@@ -122,7 +127,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         mUndoRedoHelper.onRestoreInstanceState(state);
         mTextFile = Utils.ifNull((TextFile) state.getParcelable(TAG + ".file"), mTextFile);
         mLastModified = Utils.getLastModified(mTextFile.mUri);
-        mWordWrap = state.getBoolean(TAG + ".wordwrap");
 
         setUri(mTextFile.mUri);
     }
@@ -301,11 +305,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 invalidateOptionsMenu();
                 break;
 
-            case R.id.action_wrap:
-                mWordWrap = !mWordWrap;
-                mEdit.setHorizontallyScrolling(!mWordWrap);
-                break;
-
             case R.id.action_le_windows:
                 mTextFile.mLineEnding = TextFile.LE_WINDOWS;
                 updateStatusLineEnding();
@@ -375,7 +374,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         Enable(menu.findItem(R.id.action_open_with), uri != null);
         Enable(menu.findItem(R.id.action_undo), mUndoRedoHelper.getCanUndo());
         Enable(menu.findItem(R.id.action_redo), mUndoRedoHelper.getCanRedo());
-        Check(menu.findItem(R.id.action_wrap), mWordWrap);
         switch (mTextFile.mLineEnding)
         {
         case TextFile.LE_WINDOWS:
@@ -509,6 +507,12 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             updateTabs = true;
         }
         
+        if (key == null || key.equals(PREF_WORD_WRAP))
+        {
+            boolean fWordWrap = sharedPreferences.getBoolean(PREF_WORD_WRAP, PREF_WORD_WRAP_DEFAULT);
+            mEdit.setHorizontallyScrolling(!fWordWrap); // bug when set in xml
+        }
+        
         if (updateTabs)
             setTabs(sharedPreferences);
     }
@@ -566,7 +570,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     
     void setTabs(SharedPreferences sharedPreferences)
     {
-        toast("settabs");
         Editable e = mEdit.getEditableText();
         for (TabStopSpan.Standard spanTabStop : e.getSpans(0, e.length(), TabStopSpan.Standard.class))
             e.removeSpan(spanTabStop);
