@@ -36,7 +36,9 @@ import au.radsoft.preferences.PreferenceActivity;
 // Indent/Unindent selection
 // Comment/Uncomment selection
 // Remove keyboard suggestions
+// Second action bar for common keys
 // Auto save
+// Insert tabs or spaces
 
 public class MainActivity extends Activity implements EditText.SelectionChangedListener, UndoRedoHelper.HistoryChangedListener, ActionMode.Callback, SharedPreferences.OnSharedPreferenceChangeListener
 {
