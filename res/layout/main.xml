@@ -2,7 +2,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:gravity="center"
     android:orientation="vertical" >
 
     <ScrollView
@@ -10,17 +9,15 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_weight="1"
-        android:gravity="center" >
+        android:fillViewport="true" >
     
         <au.radsoft.widget.EditText
             android:id="@+id/edit"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
             android:gravity="left|top"
             android:typeface="monospace"
             android:scrollHorizontally="true"
-            android:clickable="false"
-            android:longClickable="false"
             android:imeOptions="actionNone"
             android:inputType="text|textNoSuggestions|textMultiLine" />
             
@@ -38,10 +35,7 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
             android:lines="1"
-            android:typeface="monospace"
-            android:scrollHorizontally="true"
-            android:clickable="false"
-            android:longClickable="false" />
+            android:typeface="monospace" />
             
         <TextView
             android:id="@+id/encoding"
@@ -49,10 +43,7 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
             android:lines="1"
-            android:typeface="monospace"
-            android:scrollHorizontally="true"
-            android:clickable="false"
-            android:longClickable="false" />
+            android:typeface="monospace" />
             
         <TextView
             android:id="@+id/line_ending"
@@ -60,20 +51,14 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
             android:lines="1"
-            android:typeface="monospace"
-            android:scrollHorizontally="true"
-            android:clickable="false"
-            android:longClickable="false" />
+            android:typeface="monospace" />
             
         <TextView
             android:id="@+id/cursor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:lines="1"
-            android:typeface="monospace"
-            android:scrollHorizontally="true"
-            android:clickable="false"
-            android:longClickable="false" />
+            android:typeface="monospace" />
             
     </LinearLayout>
     
