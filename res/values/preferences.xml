@@ -10,6 +10,10 @@
     <string name="pref_tab_size_summary">The number of characters in a tab space</string>
     <string name="pref_word_wrap">Word wrap</string>
     <string name="pref_word_wrap_summary">Wrap long lines onto next line</string>
+    <string name="pref_show_whitespace">Show whitespace</string>
+    <string name="pref_show_whitespace_summary">Show whitespace as visible</string>
+    <string name="pref_show_unprintable">Show unprintable</string>
+    <string name="pref_show_unprintable_summary">Show unprintable characters as visible</string>
     
     <string name="pref_font_theme_default">default</string>
     <string-array name="pref_font_theme_entries">

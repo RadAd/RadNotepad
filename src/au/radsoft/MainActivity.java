@@ -48,12 +48,16 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     public static final int PREF_FONT_SIZE_DEFAULT = 10;
     public static final int PREF_TAB_SIZE_DEFAULT = 4;
     public static final boolean PREF_WORD_WRAP_DEFAULT = false;
+    public static final boolean PREF_SHOW_WHITESPACE_DEFAULT = false;
+    public static final boolean PREF_SHOW_UNPRINTABLE_DEFAULT = true;
     
     public static final String PREF_FONT_SIZE = "pref_font_size";
     public static final String PREF_FONT_FILE = "pref_font_file";
     public static final String PREF_FONT_THEME = "pref_font_theme";
     public static final String PREF_TAB_SIZE = "pref_tab_size";
     public static final String PREF_WORD_WRAP = "pref_word_wrap";
+    public static final String PREF_SHOW_WHITESPACE = "pref_show_whitespace";
+    public static final String PREF_SHOW_UNPRINTABLE = "pref_show_unprintable";
     
     static final int GROUP_SCHEME = 100;
 
@@ -509,6 +513,18 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         {
             boolean fWordWrap = sharedPreferences.getBoolean(PREF_WORD_WRAP, PREF_WORD_WRAP_DEFAULT);
             mEdit.setHorizontallyScrolling(!fWordWrap); // bug when set in xml
+        }
+        
+        if (key == null || key.equals(PREF_SHOW_WHITESPACE))
+        {
+            boolean fShowWhitespace = sharedPreferences.getBoolean(PREF_SHOW_WHITESPACE, PREF_SHOW_WHITESPACE_DEFAULT);
+            mUnprintableWatcher.showWhitespace(fShowWhitespace);
+        }
+        
+        if (key == null || key.equals(PREF_SHOW_UNPRINTABLE))
+        {
+            boolean fShowUnprintable = sharedPreferences.getBoolean(PREF_SHOW_UNPRINTABLE, PREF_SHOW_UNPRINTABLE_DEFAULT);
+            mUnprintableWatcher.showUnprintable(fShowUnprintable);
         }
         
         if (updateTabs)

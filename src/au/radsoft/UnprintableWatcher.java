@@ -32,7 +32,7 @@ public class UnprintableWatcher implements TextWatcher
     // \u2423 // OpenBox
     // \u00B7 // Middle dot
     private static final String SPACES = "\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7";
-    private static final String TABS= " \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5";
+    private static final String TABS = " \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5";
 
     private static class UnprintableSpan extends ReplacementSpan
     {
@@ -83,8 +83,8 @@ public class UnprintableWatcher implements TextWatcher
         @Override
         public int getSize(Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt fm)
         {
-            //return (int) (paint.measureText(text, start, end) + 0.5);
-            return (int) (paint.measureText(mText, 0, end - start) + 0.5);
+            return (int) (paint.measureText(text, start, end) + 0.5);
+            //return (int) (paint.measureText(mText, 0, end - start) + 0.5);
         }
 
         @Override
@@ -93,23 +93,52 @@ public class UnprintableWatcher implements TextWatcher
             //paint = new Paint(paint);
             int c = paint.getColor();
             paint.setAlpha(128);
-            canvas.drawText(mText, 0, end - start, x, y, paint);
+            canvas.drawText(mText, x, y, paint);
+            //canvas.drawText(mText, 0, end - start, x, y, paint);
             paint.setColor(c);
         }
     }
     
+    private final TextView mTextView;
     private int mColor = 0xffff0000;
     private boolean mShowSpace = false;
     private boolean mShowUnprintable = true;
 
     public UnprintableWatcher(TextView textView)
     {
-        textView.addTextChangedListener(this);
+        mTextView = textView;
+        mTextView.addTextChangedListener(this);
     }
     
     public void setColor(int color)
     {
         mColor = color;
+    }
+    
+    public void showWhitespace(boolean showWhitespace)
+    {
+        if (showWhitespace != mShowSpace)
+        {
+            Spannable spannable = (Spannable) mTextView.getText();
+            mShowSpace = showWhitespace;
+            if (mShowSpace)
+                addSpaces(spannable, 0, spannable.length());
+            else
+                removeSpaces(spannable, 0, spannable.length());
+        }
+    }
+    
+    public void showUnprintable(boolean showUnprintable)
+    {
+        if (showUnprintable != mShowUnprintable)
+        {
+            Spannable spannable = (Spannable) mTextView.getText();
+            mShowUnprintable = showUnprintable;
+            if (mShowUnprintable)
+                addUnprintable(spannable, 0, spannable.length(), mColor);
+            else
+                removeUnprintable(spannable, 0, spannable.length());
+        }
     }
     
     @Override //TextWatcher
@@ -121,46 +150,44 @@ public class UnprintableWatcher implements TextWatcher
     @Override //TextWatcher
     public void onTextChanged(CharSequence s, int start, int before, int count)
     {
+        int end = start + count;
         long startTime = System.currentTimeMillis();
-        Log.d(TAG, "+onTextChanged " + s.subSequence(start, start + count));
+        Log.d(TAG, "+onTextChanged " + s.subSequence(start, end));
         
         Spannable spannable = (Spannable) s;
-        int end = start + count;
         
-        //remove(spannable, start, end);
+        if (mShowSpace)
+            addSpaces(spannable, start, end);
+
+        if (mShowUnprintable)
+            addUnprintable(spannable, start, end, mColor);
         
+        long endTime = System.currentTimeMillis();
+        Log.d(TAG, "-onTextChanged " + (endTime - startTime)/1000.0f);
+    }
+    
+    private static void addUnprintable(Spannable spannable, int start, int end, int color)
+    {
         for (int i = start; i < end; ++i)
         {
             ReplacementSpan span = null;
             char c = spannable.charAt(i);
-            if (c == '\r' || c == '\n')
+            
+            if (c == '\r' || c == '\n' || c == '\t')
             {
                 // do nothing
             }
-            else if (c == '\t')
-            {
-                if (mShowSpace)
-                    span = new ShowSpaceSpan(" \u21E5");        // Tab arrow
-            }
-            else if (Character.isSpaceChar(c))
-            {
-                if (mShowSpace)
-                    span = new ShowSpaceSpan("\u00B7");
-            }
             else if (c >= 0x00 && (c - 0x00) < C0.length)
             {
-                if (mShowUnprintable)
-                    span = new UnprintableSpan(C0[c - 0x00], mColor);
+                span = new UnprintableSpan(C0[c - 0x00], color);
             }
             else if (c >= 0x80 && (c - 0x80) < C1.length)
             {
-                if (mShowUnprintable)
-                    span = new UnprintableSpan(C1[c - 0x80], mColor);
+                span = new UnprintableSpan(C1[c - 0x80], color);
             }
             //else if (Character.isISOControl(c))
             //{
-                //if (mShowUnprintable)
-                    //span = new UnprintableSpan('u' + Integer.toString(c, 16), color);
+                //span = new UnprintableSpan('u' + Integer.toString(c, 16), color);
             //}
             
             if (span != null)
@@ -169,9 +196,6 @@ public class UnprintableWatcher implements TextWatcher
                 spannable.setSpan(span, i, i + 1, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
-        
-        long endTime = System.currentTimeMillis();
-        Log.d(TAG, "-onTextChanged " + (endTime - startTime)/1000.0f);
     }
     
     private static void removeUnprintable(Spannable spannable, int start, int end)
@@ -181,6 +205,34 @@ public class UnprintableWatcher implements TextWatcher
             spannable.removeSpan(s);
     }
             
+    private static void addSpaces(Spannable spannable, int start, int end)
+    {
+        for (int i = start; i < end; ++i)
+        {
+            ReplacementSpan span = null;
+            char c = spannable.charAt(i);
+            
+            if (c == '\r' || c == '\n')
+            {
+                // do nothing
+            }
+            else if (c == '\t')
+            {
+                span = new ShowSpaceSpan(" \u21E5");
+            }
+            else if (Character.isSpaceChar(c))
+            {
+                span = new ShowSpaceSpan("\u00B7");
+            }
+            
+            if (span != null)
+            {
+                Log.d(TAG, " span " + i + " " + (int)c);
+                spannable.setSpan(span, i, i + 1, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
+    }
+    
     private static void removeSpaces(Spannable spannable, int start, int end)
     {
         ShowSpaceSpan[] spans = spannable.getSpans(start, end, ShowSpaceSpan.class);
