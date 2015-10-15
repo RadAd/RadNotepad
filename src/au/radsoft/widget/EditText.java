@@ -2,7 +2,9 @@ package au.radsoft.widget;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.text.Editable;
 import android.text.Layout;
+import android.text.style.TabStopSpan;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
@@ -40,6 +42,40 @@ public class EditText extends android.widget.EditText
         listeners.add(o);
     }
 
+    public CharSequence getSelectedText()
+    {
+        int st = getSelectionStart();
+        int en = getSelectionEnd();
+        Editable e = getText();
+        return e.subSequence(st, en);
+    }
+    
+    public void replaceSelectedText(CharSequence s)
+    {
+        final int st = getSelectionStart();
+        final int en = getSelectionEnd();
+        Editable e = getText();
+        e.replace(st, en, s);
+        post(new Runnable() {
+                @Override
+                public void run()
+                {
+                    setSelection(st, en);
+                }
+            });
+    }
+    
+    public void setTabStops(int tabChars)
+    {
+        Editable e = getEditableText();
+        for (TabStopSpan.Standard spanTabStop : e.getSpans(0, e.length(), TabStopSpan.Standard.class))
+            e.removeSpan(spanTabStop);
+        
+        float w = getPaint().measureText("                    ", 0, tabChars);  // Currently Max 20 chars, increase string for more
+        for (int i = 0; i < (80/tabChars); ++i)
+            e.setSpan(new TabStopSpan.Standard((int)(i*w + 0.5)), 0, e.length(), android.text.Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+    }
+    
     @Override
     protected void onSelectionChanged(int selStart, int selEnd)
     {

@@ -7,7 +7,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.Layout;
+import android.text.style.TabStopSpan;
 import android.view.ActionMode;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -18,10 +22,6 @@ import android.view.View;
 import android.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.net.Uri;
-import android.text.style.TabStopSpan;
-import android.text.Editable;
-import android.text.Layout;
 
 import java.io.File;
 
@@ -333,9 +333,9 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
             case R.id.selection_change_case:
                 {
-                    CharSequence text = getSelectedText();
+                    CharSequence text = mEdit.getSelectedText();
                     if (text.length() > 0)
-                        replaceSelectedText(Character.isUpperCase(text.charAt(0)) ? text.toString().toLowerCase() : text.toString().toUpperCase());
+                        mEdit.replaceSelectedText(Character.isUpperCase(text.charAt(0)) ? text.toString().toLowerCase() : text.toString().toUpperCase());
                 }
                 break;
 
@@ -366,26 +366,26 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     {
         Uri uri = mTextFile.mUri;
 
-        Enable(menu.findItem(R.id.action_revert), uri != null && (!mUndoRedoHelper.isSaved() || (mLastModified != Utils.getLastModified(uri))));
-        Enable(menu.findItem(R.id.action_save), uri != null && !mUndoRedoHelper.isSaved());
-        //Enable(menu.findItem(R.id.action_save_as), uri != null);
-        Enable(menu.findItem(R.id.action_details), uri != null);
-        Enable(menu.findItem(R.id.action_share), uri != null);
-        Enable(menu.findItem(R.id.action_open_with), uri != null);
-        Enable(menu.findItem(R.id.action_undo), mUndoRedoHelper.getCanUndo());
-        Enable(menu.findItem(R.id.action_redo), mUndoRedoHelper.getCanRedo());
+        Utils.enable(menu.findItem(R.id.action_revert), uri != null && (!mUndoRedoHelper.isSaved() || (mLastModified != Utils.getLastModified(uri))));
+        Utils.enable(menu.findItem(R.id.action_save), uri != null && !mUndoRedoHelper.isSaved());
+        //Utils.enable(menu.findItem(R.id.action_save_as), uri != null);
+        Utils.enable(menu.findItem(R.id.action_details), uri != null);
+        Utils.enable(menu.findItem(R.id.action_share), uri != null);
+        Utils.enable(menu.findItem(R.id.action_open_with), uri != null);
+        Utils.enable(menu.findItem(R.id.action_undo), mUndoRedoHelper.getCanUndo());
+        Utils.enable(menu.findItem(R.id.action_redo), mUndoRedoHelper.getCanRedo());
         switch (mTextFile.mLineEnding)
         {
         case TextFile.LE_WINDOWS:
-            Check(menu.findItem(R.id.action_le_windows), true);
+            Utils.check(menu.findItem(R.id.action_le_windows), true);
             break;
 
         case TextFile.LE_UNIX:
-            Check(menu.findItem(R.id.action_le_unix), true);
+            Utils.check(menu.findItem(R.id.action_le_unix), true);
             break;
 
         case TextFile.LE_MAC:
-            Check(menu.findItem(R.id.action_le_mac), true);
+            Utils.check(menu.findItem(R.id.action_le_mac), true);
             break;
         }
 
@@ -394,12 +394,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             String brushName = mSyntaxHighlighterWatcher.getBrushName();
             if (brushName.isEmpty())
                 brushName = "None";
-            for (int i = 0; i < mMenuScheme.size(); ++i)
-            {
-                MenuItem mi = mMenuScheme.getItem(i);
-                if (mi.getTitle().equals(brushName))
-                    mi.setChecked(true);
-            }
+            Utils.check(mMenuScheme, brushName);
         }
 
         return super.onPrepareOptionsMenu(menu);
@@ -514,7 +509,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         }
         
         if (updateTabs)
-            setTabs(sharedPreferences);
+            mEdit.setTabStops(sharedPreferences.getInt(PREF_TAB_SIZE, PREF_TAB_SIZE_DEFAULT));
     }
 
     void checkSave(String msg, final Runnable cb)
@@ -567,18 +562,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         }
         super.onCreateContextMenu(menu, view, menuInfo);
     }
-    
-    void setTabs(SharedPreferences sharedPreferences)
-    {
-        Editable e = mEdit.getEditableText();
-        for (TabStopSpan.Standard spanTabStop : e.getSpans(0, e.length(), TabStopSpan.Standard.class))
-            e.removeSpan(spanTabStop);
-        
-        int s = sharedPreferences.getInt(PREF_TAB_SIZE, PREF_TAB_SIZE_DEFAULT);
-        float w = mEdit.getPaint().measureText("                    ", 0, s);
-        for (int i = 0; i < (80/s); ++i)
-            e.setSpan(new TabStopSpan.Standard((int)(i*w + 0.5)), 0, e.length(), android.text.Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-    }
 
     void updateStatusLineEnding()
     {
@@ -609,25 +592,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     void updateStatusBrush()
     {
         mStatusBrush.setText(mSyntaxHighlighterWatcher.getBrushName());
-    }
-
-    static void Enable(MenuItem mi, boolean enable)
-    {
-        if (mi != null)
-        {
-            mi.setEnabled(enable);
-            android.graphics.drawable.Drawable icon = mi.getIcon();
-            if (icon != null)
-                icon.setAlpha(enable ? 255 : 130);
-        }
-    }
-
-    static void Check(MenuItem mi, boolean enable)
-    {
-        if (mi != null)
-        {
-            mi.setChecked(enable);
-        }
     }
 
     void updateShareActionProvider()
@@ -697,7 +661,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     void sendChooser()
     {
         Intent chooseFile = new Intent(Intent.ACTION_SEND);
-        chooseFile.putExtra(Intent.EXTRA_TEXT, getSelectedText());
+        chooseFile.putExtra(Intent.EXTRA_TEXT, mEdit.getSelectedText());
         chooseFile.setType("text/plain");
         Intent intent = Intent.createChooser(chooseFile, getString(R.string.send_prompt));
         startActivity(intent);
@@ -720,29 +684,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         String msg = String.format(fmt, args);
         Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
         toast.show();
-    }
-
-    CharSequence getSelectedText()
-    {
-        int st = mEdit.getSelectionStart();
-        int en = mEdit.getSelectionEnd();
-        Editable e = mEdit.getText();
-        return e.subSequence(st, en);
-    }
-
-    void replaceSelectedText(CharSequence s)
-    {
-        final int st = mEdit.getSelectionStart();
-        final int en = mEdit.getSelectionEnd();
-        Editable e = mEdit.getText();
-        e.replace(st, en, s);
-        mEdit.post(new Runnable() {
-                @Override
-                public void run()
-                {
-                    mEdit.setSelection(st, en);
-                }
-            });
     }
 
     private class LoadAsyncTask extends ProgressDialogAsyncTask<TextFile, CharSequence[]>
@@ -794,7 +735,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             }
             else
                 mEdit.setText(result[0]);
-            setTabs(getDefaultSharedPreferences());
+            onSharedPreferenceChanged(getDefaultSharedPreferences(), PREF_TAB_SIZE);    // setText removes the tabstops
             updateStatusLineEnding();
             updateStatusFileEncoding();
             mUndoRedoHelper.clearHistory();

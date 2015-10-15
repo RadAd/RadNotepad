@@ -1,6 +1,8 @@
 package au.radsoft;
 
 import android.net.Uri;
+import android.view.SubMenu;
+import android.view.MenuItem;
 
 import java.io.File;
 import java.io.InputStream;
@@ -82,6 +84,38 @@ class Utils
             return getUserFriendlyName(t);
         else
             return getUserFriendlyName(t) + ": " + msg;
+    }
+    
+    public static void enable(MenuItem mi, boolean enable)
+    {
+        if (mi != null)
+        {
+            mi.setEnabled(enable);
+            android.graphics.drawable.Drawable icon = mi.getIcon();
+            if (icon != null)
+                icon.setAlpha(enable ? 255 : 130);
+        }
+    }
+    
+    public static void check(MenuItem mi, boolean enable)
+    {
+        if (mi != null)
+        {
+            mi.setChecked(enable);
+        }
+    }
+    
+    public static void check(SubMenu sm, String name)
+    {
+        if (sm != null)
+        {
+            for (int i = 0; i < sm.size(); ++i)
+            {
+                MenuItem mi = sm.getItem(i);
+                if (mi.getTitle().equals(name))
+                    mi.setChecked(true);
+            }
+        }
     }
 }
 
