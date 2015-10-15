@@ -85,7 +85,7 @@ public class SyntaxHighlighterWatcher implements TextWatcher
             int lineBeginOffset = layout.getLineStart(lineBegin);
             int lineEndOffset = layout.getLineEnd(lineEnd);
             
-            highlightSyntax((Spannable) mTextView.getText(), mBrush, mTheme, lineBeginOffset, lineEndOffset);
+            highlightSyntax((Spannable) s, mBrush, mTheme, lineBeginOffset, lineEndOffset);
         }
     }
     
