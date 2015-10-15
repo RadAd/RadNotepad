@@ -70,6 +70,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
 
     UndoRedoHelper mUndoRedoHelper;
     SyntaxHighlighterWatcher mSyntaxHighlighterWatcher;
+    UnprintableWatcher mUnprintableWatcher;
     TextFile mTextFile = new TextFile();
     long mLastModified = -1;
 
@@ -87,6 +88,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         mUndoRedoHelper = new UndoRedoHelper(mEdit);
         mUndoRedoHelper.addHistoryChangedListener(this);
         mSyntaxHighlighterWatcher = new SyntaxHighlighterWatcher(mEdit, sharedPref.getString(PREF_FONT_THEME, ""));
+        mUnprintableWatcher = new UnprintableWatcher(mEdit);
         mEdit.addSelectionChangedListener(this);
         mEdit.setCustomSelectionActionModeCallback(this);
         registerForContextMenu(mEdit);
@@ -495,6 +497,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         if (key == null || key.equals(PREF_FONT_THEME))
         {
             mSyntaxHighlighterWatcher.setThemeByName(sharedPreferences.getString(PREF_FONT_THEME, ""));
+            mUnprintableWatcher.setColor(mSyntaxHighlighterWatcher.getBackgroundColor());
         }
         
         if (key == null || key.equals(PREF_TAB_SIZE))

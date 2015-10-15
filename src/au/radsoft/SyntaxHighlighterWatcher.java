@@ -59,6 +59,11 @@ public class SyntaxHighlighterWatcher implements TextWatcher
         highlightSyntax((Spannable) mTextView.getText(), mBrush, mTheme, 0, mTextView.getText().length());
     }
     
+    int getBackgroundColor()
+    {
+        return mTheme.getBgColor();
+    }
+    
     @Override //TextWatcher
     public void afterTextChanged(Editable s) { }
     
@@ -82,8 +87,6 @@ public class SyntaxHighlighterWatcher implements TextWatcher
             
             highlightSyntax((Spannable) mTextView.getText(), mBrush, mTheme, lineBeginOffset, lineEndOffset);
         }
-        
-        //invalidateOptionsMenu();
     }
     
     private static void highlightSyntax(Spannable spannable, Brush brush, Theme theme, int start, int end)
