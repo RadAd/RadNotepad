@@ -103,7 +103,8 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         mStatusCursor = (TextView) findViewById(R.id.cursor);
 
         onSelectionChanged(mEdit.getSelectionStart(), mEdit.getSelectionEnd());
-
+        onSharedPreferenceChanged(sharedPref, null);
+        
         Intent intent = getIntent();
         if (intent != null)
         {
@@ -114,8 +115,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 open();
             }
         }
-        
-        onSharedPreferenceChanged(sharedPref, null);
     }
 
     @Override

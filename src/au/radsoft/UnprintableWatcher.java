@@ -8,11 +8,8 @@ import android.text.Layout;
 import android.text.Spannable;
 import android.text.TextWatcher;
 import android.text.style.ReplacementSpan;
-import android.util.Log;
+//import android.util.Log;
 import android.widget.TextView;
-
-// TODO
-// Speed improvement by combining spans
 
 public class UnprintableWatcher implements TextWatcher
 {
@@ -31,8 +28,8 @@ public class UnprintableWatcher implements TextWatcher
     // \u2420 // Symbol for space
     // \u2423 // OpenBox
     // \u00B7 // Middle dot
-    private static final String SPACES = "\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7";
-    private static final String TABS = " \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5 \u21E5";
+    private static final String SPACE = "\u00B7";
+    private static final String TAB = " \u21E5";
 
     private static class UnprintableSpan extends ReplacementSpan
     {
@@ -84,7 +81,6 @@ public class UnprintableWatcher implements TextWatcher
         public int getSize(Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt fm)
         {
             return (int) (paint.measureText(text, start, end) + 0.5);
-            //return (int) (paint.measureText(mText, 0, end - start) + 0.5);
         }
 
         @Override
@@ -94,7 +90,6 @@ public class UnprintableWatcher implements TextWatcher
             int c = paint.getColor();
             paint.setAlpha(128);
             canvas.drawText(mText, x, y, paint);
-            //canvas.drawText(mText, 0, end - start, x, y, paint);
             paint.setColor(c);
         }
     }
@@ -151,8 +146,8 @@ public class UnprintableWatcher implements TextWatcher
     public void onTextChanged(CharSequence s, int start, int before, int count)
     {
         int end = start + count;
-        long startTime = System.currentTimeMillis();
-        Log.d(TAG, "+onTextChanged " + s.subSequence(start, end));
+        //long startTime = System.currentTimeMillis();
+        //Log.d(TAG, "+onTextChanged " + s.subSequence(start, end));
         
         Spannable spannable = (Spannable) s;
         
@@ -162,8 +157,8 @@ public class UnprintableWatcher implements TextWatcher
         if (mShowUnprintable)
             addUnprintable(spannable, start, end, mColor);
         
-        long endTime = System.currentTimeMillis();
-        Log.d(TAG, "-onTextChanged " + (endTime - startTime)/1000.0f);
+        //long endTime = System.currentTimeMillis();
+        //Log.d(TAG, "-onTextChanged " + (endTime - startTime)/1000.0f);
     }
     
     private static void addUnprintable(Spannable spannable, int start, int end, int color)
@@ -192,7 +187,7 @@ public class UnprintableWatcher implements TextWatcher
             
             if (span != null)
             {
-                Log.d(TAG, " span " + i + " " + (int)c);
+                //Log.d(TAG, " span " + i + " " + (int)c);
                 spannable.setSpan(span, i, i + 1, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
@@ -218,16 +213,16 @@ public class UnprintableWatcher implements TextWatcher
             }
             else if (c == '\t')
             {
-                span = new ShowSpaceSpan(" \u21E5");
+                span = new ShowSpaceSpan(TAB);
             }
             else if (Character.isSpaceChar(c))
             {
-                span = new ShowSpaceSpan("\u00B7");
+                span = new ShowSpaceSpan(SPACE);
             }
             
             if (span != null)
             {
-                Log.d(TAG, " span " + i + " " + (int)c);
+                //Log.d(TAG, " span " + i + " " + (int)c);
                 spannable.setSpan(span, i, i + 1, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }

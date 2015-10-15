@@ -8,11 +8,11 @@
     <string name="pref_font_theme_summary">The colour theme for the font</string>
     <string name="pref_tab_size">Tab Size</string>
     <string name="pref_tab_size_summary">The number of characters in a tab space</string>
-    <string name="pref_word_wrap">Word wrap</string>
+    <string name="pref_word_wrap">Word Wrap</string>
     <string name="pref_word_wrap_summary">Wrap long lines onto next line</string>
-    <string name="pref_show_whitespace">Show whitespace</string>
-    <string name="pref_show_whitespace_summary">Show whitespace as visible</string>
-    <string name="pref_show_unprintable">Show unprintable</string>
+    <string name="pref_show_whitespace">Show Whitespace</string>
+    <string name="pref_show_whitespace_summary">Show Whitespace as visible</string>
+    <string name="pref_show_unprintable">Show Unprintable</string>
     <string name="pref_show_unprintable_summary">Show unprintable characters as visible</string>
     
     <string name="pref_font_theme_default">default</string>
