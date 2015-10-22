@@ -12,6 +12,7 @@ import android.widget.ScrollView;
 
 import java.util.List;
 import java.util.ArrayList;
+import android.widget.*;
 
 public class EditText extends android.widget.EditText
 {
@@ -50,17 +51,19 @@ public class EditText extends android.widget.EditText
         return e.subSequence(st, en);
     }
     
-    public void replaceSelectedText(CharSequence s)
+    public void replaceSelectedText(CharSequence s, boolean reselect)
     {
         final int st = getSelectionStart();
         final int en = getSelectionEnd();
         Editable e = getText();
         e.replace(st, en, s);
+        final int nen = st + s.length();
+        final int nst = reselect ? st : nen;
         post(new Runnable() {
-                @Override
-                public void run()
+                    @Override
+                    public void run()
                 {
-                    setSelection(st, en);
+                    setSelection(nst, nen);
                 }
             });
     }
@@ -106,6 +109,7 @@ public class EditText extends android.widget.EditText
     // Fix a bug in TextView that isn't correctly capturing TAB key events
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        //android.widget.Toast.makeText(getContext(), "onKeyDown " + keyCode, android.widget.Toast.LENGTH_LONG).show();
         if (keyCode == KeyEvent.KEYCODE_TAB) {
             int which = doKeyDown(keyCode, event, null);
             if (which == 0) {

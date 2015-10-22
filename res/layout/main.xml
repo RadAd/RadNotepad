@@ -62,4 +62,171 @@
             
     </LinearLayout>
     
+    <HorizontalScrollView
+        android:id="@+id/keys"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none" >
+        
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="\u25c0"
+                android:tag="21"
+                android:onClick="onKey"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="\u25b6"
+                android:tag="22"
+                android:onClick="onKey"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="\u25b2"
+                android:tag="19"
+                android:onClick="onKey"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="\u25bc"
+                android:tag="20"
+                android:onClick="onKey"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tab"
+                android:tag="61"
+                android:onClick="onKey"
+                style="@style/keyButtonStyle" />
+                
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="="
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+                
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="!"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="&amp;"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+                
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="|"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="&quot;"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="'"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=":"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+                
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=";"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="&lt;"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="&gt;"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="("
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+                
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=")"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="["
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+                
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="]"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="{"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="}"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+        </LinearLayout>
+        
+    </HorizontalScrollView>
+    
 </LinearLayout>

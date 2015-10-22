@@ -14,6 +14,7 @@ import android.text.Layout;
 import android.text.style.TabStopSpan;
 import android.view.ActionMode;
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -39,6 +40,7 @@ import au.radsoft.preferences.PreferenceActivity;
 // Second action bar for common keys
 // Auto save
 // Insert tabs or spaces
+// Convert tabs to spaces
 
 public class MainActivity extends Activity implements EditText.SelectionChangedListener, UndoRedoHelper.HistoryChangedListener, ActionMode.Callback, SharedPreferences.OnSharedPreferenceChangeListener
 {
@@ -342,7 +344,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
                 {
                     CharSequence text = mEdit.getSelectedText();
                     if (text.length() > 0)
-                        mEdit.replaceSelectedText(Character.isUpperCase(text.charAt(0)) ? text.toString().toLowerCase() : text.toString().toUpperCase());
+                        mEdit.replaceSelectedText(Character.isUpperCase(text.charAt(0)) ? text.toString().toLowerCase() : text.toString().toUpperCase(), true);
                 }
                 break;
 
@@ -581,6 +583,38 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             }
         }
         super.onCreateContextMenu(menu, view, menuInfo);
+    }
+    
+    public void onChar(View v)
+    {
+        String chars = null;
+        if (v.getTag() != null)
+            chars = v.getTag().toString();
+        else if (v instanceof android.widget.Button)
+        {
+            android.widget.Button b = (android.widget.Button) v;
+            chars = b.getText().toString();
+        }
+        
+        if (chars != null)
+        {
+            //mEdit.replaceSelectedText(chars, false);
+            android.view.KeyCharacterMap kmap = android.view.KeyCharacterMap.load(android.view.KeyCharacterMap.VIRTUAL_KEYBOARD);
+            KeyEvent es[] = kmap.getEvents(chars.toCharArray());
+            for (KeyEvent e : es)
+                mEdit.dispatchKeyEvent(e);
+        }
+    }
+
+    public void onKey(View v)
+    {
+        Object o = v.getTag();
+        if (o != null)
+        {
+            int key = Integer.parseInt(o.toString());
+            mEdit.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_DOWN, key, 0));
+            mEdit.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_UP, key, 0));
+        }
     }
 
     void updateStatusLineEnding()
