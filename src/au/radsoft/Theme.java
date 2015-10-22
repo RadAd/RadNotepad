@@ -75,7 +75,7 @@ public class Theme
         case THEME_EMACS:
             // Emacs SyntaxHighlighter theme based on theme by Joshua Emmons
             // http://www.skia.net/
-            theme = new Theme(THEME_EMACS, 0xd3d3d3, 0x000000, 0x2A3133);
+            theme = new Theme(THEME_EMACS, 0xd3d3d3, 0x000000, 0x3f4547);
             theme.put(Brush.COMMENTS,       new Style().setFgColor(0xff7d27));
             theme.put(Brush.STRING,         new Style().setFgColor(0xff9e7b));
             theme.put(Brush.KEYWORD,        new Style().setFgColor(0x00ffff));
