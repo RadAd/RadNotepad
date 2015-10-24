@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="keyButtonStyle" parent="@android:style/Widget.Holo.Button.Borderless" >
-        <item name="android:textColor" >@android:color/white</item>
+    <style name="keyButtonStyle" parent="@android:style/Widget.DeviceDefault.Button.Borderless" >
+        <item name="android:textColor" >@android:color/primary_text_dark</item>
         <item name="android:minWidth" >40sp</item>
 	</style>
 </resources>

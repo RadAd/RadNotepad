@@ -20,6 +20,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -104,6 +106,50 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         mStatusEncoding = (TextView) findViewById(R.id.encoding);
         mStatusLineEnding = (TextView) findViewById(R.id.line_ending);
         mStatusCursor = (TextView) findViewById(R.id.cursor);
+        ViewGroup keys = (ViewGroup) findViewById(R.id.keys);
+        
+        View.OnClickListener onCharListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+            {
+                onChar(v);
+            }
+        };
+        View.OnClickListener onKeyListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+            {
+                onKey(v);
+            }
+        };
+        
+        String charKeys = "{DPAD_LEFT} {DPAD_RIGHT} {DPAD_UP} {DPAD_DOWN} {TAB} = + - * / ! ? & | \" ' : ; _ @ # \\ < > ( ) [ ] { }";
+        
+        for (String c : charKeys.split(" "))
+        {
+            Button b = (Button) getLayoutInflater().inflate(R.layout.key_button, keys, false);
+            if (c.length() > 2 && c.charAt(0) == '{' && c.charAt(c.length() - 1) == '}')
+            {
+                String name = c.substring(1, c.length() - 1);
+                int keyCode = KeyEvent.keyCodeFromString("KEYCODE_" + name.toUpperCase());
+                switch (name.toUpperCase())
+                {
+                    case "DPAD_LEFT":  name = "\u25c0"; break;
+                    case "DPAD_RIGHT": name = "\u25b6"; break;
+                    case "DPAD_UP":    name = "\u25b2"; break;
+                    case "DPAD_DOWN":  name = "\u25bc"; break;
+                }
+                b.setText(name);
+                b.setTag(keyCode);
+                b.setOnClickListener(onKeyListener);
+            }
+            else
+            {
+                b.setText(c);
+                b.setOnClickListener(onCharListener);
+            }
+            keys.addView(b);
+        }
 
         onSelectionChanged(mEdit.getSelectionStart(), mEdit.getSelectionEnd());
         onSharedPreferenceChanged(sharedPref, null);
@@ -609,12 +655,17 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     public void onKey(View v)
     {
         View fv = getCurrentFocus();
+        int keyCode = KeyEvent.KEYCODE_UNKNOWN;
         Object o = v.getTag();
-        if (fv != null && o != null)
+        if (o instanceof Integer)
+            keyCode = (Integer) o;
+        else if (o != null)
+            keyCode = Integer.parseInt(o.toString());
+        
+        if (fv != null && keyCode != KeyEvent.KEYCODE_UNKNOWN)
         {
-            int key = Integer.parseInt(o.toString());
-            fv.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_DOWN, key, 0));
-            fv.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_UP, key, 0));
+            fv.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_DOWN, keyCode, 0));
+            fv.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_UP, keyCode, 0));
         }
     }
 
