@@ -36,11 +36,10 @@ import au.radsoft.preferences.PreferenceActivity;
 // Expand selection
 // Indent/Unindent selection
 // Comment/Uncomment selection
-// Remove keyboard suggestions
-// Second action bar for common keys
 // Auto save
 // Insert tabs or spaces
 // Convert tabs to spaces
+// Keyboard shortcuts
 
 public class MainActivity extends Activity implements EditText.SelectionChangedListener, UndoRedoHelper.HistoryChangedListener, ActionMode.Callback, SharedPreferences.OnSharedPreferenceChangeListener
 {
@@ -596,24 +595,26 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
             chars = b.getText().toString();
         }
         
-        if (chars != null)
+        View fv = getCurrentFocus();
+        if (fv != null && chars != null)
         {
             //mEdit.replaceSelectedText(chars, false);
             android.view.KeyCharacterMap kmap = android.view.KeyCharacterMap.load(android.view.KeyCharacterMap.VIRTUAL_KEYBOARD);
             KeyEvent es[] = kmap.getEvents(chars.toCharArray());
             for (KeyEvent e : es)
-                mEdit.dispatchKeyEvent(e);
+                fv.dispatchKeyEvent(e);
         }
     }
 
     public void onKey(View v)
     {
+        View fv = getCurrentFocus();
         Object o = v.getTag();
-        if (o != null)
+        if (fv != null && o != null)
         {
             int key = Integer.parseInt(o.toString());
-            mEdit.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_DOWN, key, 0));
-            mEdit.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_UP, key, 0));
+            fv.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_DOWN, key, 0));
+            fv.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_UP, key, 0));
         }
     }
 
