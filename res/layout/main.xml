@@ -19,7 +19,7 @@
             android:typeface="monospace"
             android:scrollHorizontally="true"
             android:imeOptions="actionNone"
-            android:inputType="text|textNoSuggestions|textMultiLine" />
+            android:inputType="textNoSuggestions|textVisiblePassword|textMultiLine" />
             
     </ScrollView>
 
@@ -63,12 +63,12 @@
     </LinearLayout>
     
     <HorizontalScrollView
-        android:id="@+id/keys"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:scrollbars="none" >
         
         <LinearLayout
+            android:id="@+id/keys"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal" >
@@ -123,6 +123,34 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="+"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+                
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="-"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+                
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="*"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+                
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="/"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+                
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="!"
                 android:onClick="onChar"
                 style="@style/keyButtonStyle" />
@@ -140,7 +168,7 @@
                 android:text="|"
                 android:onClick="onChar"
                 style="@style/keyButtonStyle" />
-            
+                
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -166,6 +194,34 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=";"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="_"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="\@"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="#"
+                android:onClick="onChar"
+                style="@style/keyButtonStyle" />
+            
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="\\"
                 android:onClick="onChar"
                 style="@style/keyButtonStyle" />
             
