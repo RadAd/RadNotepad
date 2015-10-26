@@ -53,4 +53,16 @@
         android:summary="@string/pref_show_unprintable_summary"
         android:title="@string/pref_show_unprintable" />
         
+    <SwitchPreference
+        android:key="pref_show_key_toolbar"
+        android:defaultValue="true"
+        android:summary="@string/pref_show_key_toolbar_summary"
+        android:title="@string/pref_show_key_toolbar" />
+        
+    <EditTextPreference
+        android:key="pref_key_toolbar_keys"
+        android:defaultValue="{DPAD_LEFT} {DPAD_RIGHT} {DPAD_UP} {DPAD_DOWN} {TAB} = + - * / ! ? &amp; | &quot; ' : ; _ @ # \\ &lt; &gt; ( ) [ ] { }"
+        android:summary="@string/pref_key_toolbar_keys_summary"
+        android:title="@string/pref_key_toolbar_keys" />
+        
 </PreferenceScreen>

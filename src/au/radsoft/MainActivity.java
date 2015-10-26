@@ -55,6 +55,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     public static final boolean PREF_WORD_WRAP_DEFAULT = false;
     public static final boolean PREF_SHOW_WHITESPACE_DEFAULT = false;
     public static final boolean PREF_SHOW_UNPRINTABLE_DEFAULT = true;
+    public static final boolean PREF_SHOW_KEY_TOOLBAR_DEFAULT = true;
     
     public static final String PREF_FONT_SIZE = "pref_font_size";
     public static final String PREF_FONT_FILE = "pref_font_file";
@@ -63,6 +64,8 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     public static final String PREF_WORD_WRAP = "pref_word_wrap";
     public static final String PREF_SHOW_WHITESPACE = "pref_show_whitespace";
     public static final String PREF_SHOW_UNPRINTABLE = "pref_show_unprintable";
+    public static final String PREF_SHOW_KEY_TOOLBAR = "pref_show_key_toolbar";
+    public static final String PREF_KEY_TOOLBAR_KEYS = "pref_key_toolbar_keys";
     
     static final int GROUP_SCHEME = 100;
 
@@ -106,50 +109,6 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         mStatusEncoding = (TextView) findViewById(R.id.encoding);
         mStatusLineEnding = (TextView) findViewById(R.id.line_ending);
         mStatusCursor = (TextView) findViewById(R.id.cursor);
-        ViewGroup keys = (ViewGroup) findViewById(R.id.keys);
-        
-        View.OnClickListener onCharListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v)
-            {
-                onChar(v);
-            }
-        };
-        View.OnClickListener onKeyListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v)
-            {
-                onKey(v);
-            }
-        };
-        
-        String charKeys = "{DPAD_LEFT} {DPAD_RIGHT} {DPAD_UP} {DPAD_DOWN} {TAB} = + - * / ! ? & | \" ' : ; _ @ # \\ < > ( ) [ ] { }";
-        
-        for (String c : charKeys.split(" "))
-        {
-            Button b = (Button) getLayoutInflater().inflate(R.layout.key_button, keys, false);
-            if (c.length() > 2 && c.charAt(0) == '{' && c.charAt(c.length() - 1) == '}')
-            {
-                String name = c.substring(1, c.length() - 1);
-                int keyCode = KeyEvent.keyCodeFromString("KEYCODE_" + name.toUpperCase());
-                switch (name.toUpperCase())
-                {
-                    case "DPAD_LEFT":  name = "\u25c0"; break;
-                    case "DPAD_RIGHT": name = "\u25b6"; break;
-                    case "DPAD_UP":    name = "\u25b2"; break;
-                    case "DPAD_DOWN":  name = "\u25bc"; break;
-                }
-                b.setText(name);
-                b.setTag(keyCode);
-                b.setOnClickListener(onKeyListener);
-            }
-            else
-            {
-                b.setText(c);
-                b.setOnClickListener(onCharListener);
-            }
-            keys.addView(b);
-        }
 
         onSelectionChanged(mEdit.getSelectionStart(), mEdit.getSelectionEnd());
         onSharedPreferenceChanged(sharedPref, null);
@@ -573,6 +532,66 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         {
             boolean fShowUnprintable = sharedPreferences.getBoolean(PREF_SHOW_UNPRINTABLE, PREF_SHOW_UNPRINTABLE_DEFAULT);
             mUnprintableWatcher.showUnprintable(fShowUnprintable);
+        }
+        
+        if (key == null || key.equals(PREF_SHOW_KEY_TOOLBAR))
+        {
+            boolean fShowKeyToolbar = sharedPreferences.getBoolean(PREF_SHOW_KEY_TOOLBAR, PREF_SHOW_KEY_TOOLBAR_DEFAULT);
+            View keyToolbar = findViewById(R.id.keys);
+            keyToolbar.setVisibility(fShowKeyToolbar ? View.VISIBLE : View.GONE);
+        }
+        
+        if (key == null || key.equals(PREF_KEY_TOOLBAR_KEYS))
+        {
+            ViewGroup keys = (ViewGroup) findViewById(R.id.keys);
+            keys.removeAllViews();
+            
+            View.OnClickListener onCharListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v)
+                {
+                    onChar(v);
+                }
+            };
+            View.OnClickListener onKeyListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v)
+                {
+                    onKey(v);
+                }
+            };
+            
+            //String charKeys = "{DPAD_LEFT} {DPAD_RIGHT} {DPAD_UP} {DPAD_DOWN} {TAB} = + - * / ! ? & | \" ' : ; _ @ # \\ < > ( ) [ ] { }";
+            String charKeys = sharedPreferences.getString(PREF_KEY_TOOLBAR_KEYS, "");
+            
+            for (String c : charKeys.split(" "))
+            {
+                if (!c.isEmpty())
+                {
+                    Button b = (Button) getLayoutInflater().inflate(R.layout.key_button, keys, false);
+                    if (c.length() > 2 && c.charAt(0) == '{' && c.charAt(c.length() - 1) == '}')
+                    {
+                        String name = c.substring(1, c.length() - 1);
+                        int keyCode = KeyEvent.keyCodeFromString("KEYCODE_" + name.toUpperCase());
+                        switch (name.toUpperCase())
+                        {
+                            case "DPAD_LEFT":  name = "\u25c0"; break;
+                            case "DPAD_RIGHT": name = "\u25b6"; break;
+                            case "DPAD_UP":    name = "\u25b2"; break;
+                            case "DPAD_DOWN":  name = "\u25bc"; break;
+                        }
+                        b.setText(name);
+                        b.setTag(keyCode);
+                        b.setOnClickListener(onKeyListener);
+                    }
+                    else
+                    {
+                        b.setText(c);
+                        b.setOnClickListener(onCharListener);
+                    }
+                    keys.addView(b);
+                }
+            }
         }
         
         if (updateTabs)

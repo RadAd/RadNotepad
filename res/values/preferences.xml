@@ -14,6 +14,10 @@
     <string name="pref_show_whitespace_summary">Show Whitespace as visible</string>
     <string name="pref_show_unprintable">Show Unprintable</string>
     <string name="pref_show_unprintable_summary">Show unprintable characters as visible</string>
+    <string name="pref_show_key_toolbar">Show Key Toolbar</string>
+    <string name="pref_show_key_toolbar_summary">Show extra key toolbar</string>
+    <string name="pref_key_toolbar_keys">Extra keys</string>
+    <string name="pref_key_toolbar_keys_summary">Keys to show in tollbar</string>
     
     <string name="pref_font_theme_default">default</string>
     <string-array name="pref_font_theme_entries">
