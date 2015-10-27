@@ -113,6 +113,33 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         onSelectionChanged(mEdit.getSelectionStart(), mEdit.getSelectionEnd());
         onSharedPreferenceChanged(sharedPref, null);
         
+        mEdit.setOnKeyListener(new View.OnKeyListener() {
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                    if (keyCode == KeyEvent.KEYCODE_TAB)
+                    {
+                        if (event.getAction() == KeyEvent.ACTION_DOWN)
+                        {
+                            int tabSize = getDefaultSharedPreferences().getInt(PREF_TAB_SIZE, PREF_TAB_SIZE_DEFAULT);
+                            int selStart = mEdit.getSelectionStart();
+                            int line = mEdit.getLayout().getLineForOffset(selStart);
+                            int lineStart = mEdit.getLayout().getLineStart(line);
+                            int count = tabSize - (selStart - lineStart) % tabSize;
+                            
+                            char spaces[] = new char[count];
+                            java.util.Arrays.fill(spaces, ' ');
+                                
+                            android.view.KeyCharacterMap kmap = android.view.KeyCharacterMap.load(android.view.KeyCharacterMap.VIRTUAL_KEYBOARD);
+                            KeyEvent es[] = kmap.getEvents(spaces);
+                            for (KeyEvent e : es)
+                                v.dispatchKeyEvent(e);
+                        }
+                        return true;
+                    }
+                    else
+                        return false;
+                }
+            });
+        
         Intent intent = getIntent();
         if (intent != null)
         {

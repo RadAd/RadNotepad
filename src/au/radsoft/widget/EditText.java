@@ -74,7 +74,10 @@ public class EditText extends android.widget.EditText
         for (TabStopSpan.Standard spanTabStop : e.getSpans(0, e.length(), TabStopSpan.Standard.class))
             e.removeSpan(spanTabStop);
         
-        float w = getPaint().measureText("                    ", 0, tabChars);  // Currently Max 20 chars, increase string for more
+        char spaces[] = new char[tabChars];
+        java.util.Arrays.fill(spaces, ' ');
+        
+        float w = getPaint().measureText(spaces, 0, spaces.length);
         for (int i = 0; i < (80/tabChars); ++i)
             e.setSpan(new TabStopSpan.Standard((int)(i*w + 0.5)), 0, e.length(), android.text.Spanned.SPAN_INCLUSIVE_INCLUSIVE);
     }
@@ -94,6 +97,7 @@ public class EditText extends android.widget.EditText
             Layout layout = getLayout();
             if (layout != null)
             {
+                // TODO Maybe fix bringPointIntoView instead
                 int line = layout.getLineForOffset(selStart);
                 Rect r = new Rect();
                 layout.getLineBounds(line, r);
