@@ -525,8 +525,9 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         if (key == null || key.equals(PREF_SHOW_WHITESPACE))
         {
             boolean fShowWhitespace = sharedPreferences.getBoolean(PREF_SHOW_WHITESPACE, PREF_SHOW_WHITESPACE_DEFAULT);
-            // TODO Need to pause or undo UndoRedoHelper
+            mUndoRedoHelper.pause(true);
             mEdit.setTransformationMethod(fShowWhitespace ? new ShowSpacesTransformationMethod() : null);
+            mUndoRedoHelper.pause(false);
         }
         
         if (key == null || key.equals(PREF_SHOW_UNPRINTABLE))

@@ -13,7 +13,7 @@ class ShowSpacesTransformationMethod extends ReplacementTransformationMethod
     // \u2423 // OpenBox
     // \u00B7 // Middle dot
     static final char[] original = { ' ', '\t' };
-    static final char[] replacement = { 'a', 'b' };
+    static final char[] replacement = { '\u00b7', '\u21e5' };
     
     @Override
     protected char[] getOriginal()

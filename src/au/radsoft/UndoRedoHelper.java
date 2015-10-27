@@ -84,6 +84,10 @@ public class UndoRedoHelper {
     public boolean getCanUndo() {
         return (mEditHistory.mmPosition > 0);
     }
+    
+    public void pause(boolean pause) {
+        mIsUndoOrRedo = pause;
+    }
 
     public void undo() {
         EditItem edit = mEditHistory.getPrevious();
