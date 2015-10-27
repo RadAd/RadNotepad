@@ -1,8 +1,11 @@
 package au.radsoft;
 
 import android.net.Uri;
-import android.view.SubMenu;
+import android.view.KeyCharacterMap;
+import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.view.SubMenu;
+import android.view.View;
 
 import java.io.File;
 import java.io.InputStream;
@@ -117,5 +120,12 @@ class Utils
             }
         }
     }
+    
+    public static void dispatchCharEvents(View v, char[] chars)
+    {
+        KeyCharacterMap kmap = KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD);
+        KeyEvent es[] = kmap.getEvents(chars);
+        for (KeyEvent e : es)
+            v.dispatchKeyEvent(e);
+    }
 }
-

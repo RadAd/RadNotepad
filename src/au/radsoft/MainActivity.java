@@ -53,6 +53,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     public static final int PREF_FONT_SIZE_DEFAULT = 10;
     public static final int PREF_TAB_SIZE_DEFAULT = 4;
     public static final boolean PREF_WORD_WRAP_DEFAULT = false;
+    public static final boolean PREF_INSERT_SPACES_DEFAULT = false;
     public static final boolean PREF_SHOW_WHITESPACE_DEFAULT = false;
     public static final boolean PREF_SHOW_UNPRINTABLE_DEFAULT = true;
     public static final boolean PREF_SHOW_KEY_TOOLBAR_DEFAULT = true;
@@ -62,6 +63,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
     public static final String PREF_FONT_THEME = "pref_font_theme";
     public static final String PREF_TAB_SIZE = "pref_tab_size";
     public static final String PREF_WORD_WRAP = "pref_word_wrap";
+    public static final String PREF_INSERT_SPACES = "pref_insert_spaces";
     public static final String PREF_SHOW_WHITESPACE = "pref_show_whitespace";
     public static final String PREF_SHOW_UNPRINTABLE = "pref_show_unprintable";
     public static final String PREF_SHOW_KEY_TOOLBAR = "pref_show_key_toolbar";
@@ -115,23 +117,24 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         
         mEdit.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
-                    if (keyCode == KeyEvent.KEYCODE_TAB)
+                    SharedPreferences sharedPreferences = getDefaultSharedPreferences();
+                    boolean insertSpaces = sharedPreferences.getBoolean(PREF_INSERT_SPACES, PREF_INSERT_SPACES_DEFAULT);
+                    if (insertSpaces && v == mEdit && keyCode == KeyEvent.KEYCODE_TAB)
                     {
                         if (event.getAction() == KeyEvent.ACTION_DOWN)
                         {
-                            int tabSize = getDefaultSharedPreferences().getInt(PREF_TAB_SIZE, PREF_TAB_SIZE_DEFAULT);
                             int selStart = mEdit.getSelectionStart();
-                            int line = mEdit.getLayout().getLineForOffset(selStart);
-                            int lineStart = mEdit.getLayout().getLineStart(line);
-                            int count = tabSize - (selStart - lineStart) % tabSize;
+                            Layout layout = mEdit.getLayout();
+                            int line = layout.getLineForOffset(selStart);
+                            int col = selStart - layout.getLineStart(line);
+                            
+                            int tabSize = sharedPreferences.getInt(PREF_TAB_SIZE, PREF_TAB_SIZE_DEFAULT);
+                            int count = tabSize - col % tabSize;
                             
                             char spaces[] = new char[count];
                             java.util.Arrays.fill(spaces, ' ');
-                                
-                            android.view.KeyCharacterMap kmap = android.view.KeyCharacterMap.load(android.view.KeyCharacterMap.VIRTUAL_KEYBOARD);
-                            KeyEvent es[] = kmap.getEvents(spaces);
-                            for (KeyEvent e : es)
-                                v.dispatchKeyEvent(e);
+                            
+                            Utils.dispatchCharEvents(v, spaces);
                         }
                         return true;
                     }
@@ -693,10 +696,7 @@ public class MainActivity extends Activity implements EditText.SelectionChangedL
         if (fv != null && chars != null)
         {
             //mEdit.replaceSelectedText(chars, false);
-            android.view.KeyCharacterMap kmap = android.view.KeyCharacterMap.load(android.view.KeyCharacterMap.VIRTUAL_KEYBOARD);
-            KeyEvent es[] = kmap.getEvents(chars.toCharArray());
-            for (KeyEvent e : es)
-                fv.dispatchKeyEvent(e);
+            Utils.dispatchCharEvents(fv, chars.toCharArray());
         }
     }
 

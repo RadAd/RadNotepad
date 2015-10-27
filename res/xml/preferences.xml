@@ -42,6 +42,12 @@
         android:title="@string/pref_word_wrap" />
 
     <SwitchPreference
+        android:key="pref_insert_spaces"
+        android:defaultValue="false"
+        android:summary="@string/pref_insert_spaces_summary"
+        android:title="@string/pref_insert_spaces" />
+
+    <SwitchPreference
         android:key="pref_show_whitespace"
         android:defaultValue="false"
         android:summary="@string/pref_show_whitespace_summary"

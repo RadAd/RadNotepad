@@ -10,6 +10,8 @@
     <string name="pref_tab_size_summary">The number of characters in a tab space</string>
     <string name="pref_word_wrap">Word Wrap</string>
     <string name="pref_word_wrap_summary">Wrap long lines onto next line</string>
+    <string name="pref_insert_spaces">Insert spaces</string>
+    <string name="pref_insert_spaces_summary">Insert spaces or tabs when pressing the TAB key</string>
     <string name="pref_show_whitespace">Show Whitespace</string>
     <string name="pref_show_whitespace_summary">Show Whitespace as visible</string>
     <string name="pref_show_unprintable">Show Unprintable</string>
