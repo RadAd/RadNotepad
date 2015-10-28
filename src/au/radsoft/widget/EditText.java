@@ -12,7 +12,6 @@ import android.widget.ScrollView;
 
 import java.util.List;
 import java.util.ArrayList;
-import android.widget.*;
 
 public class EditText extends android.widget.EditText
 {
@@ -83,30 +82,32 @@ public class EditText extends android.widget.EditText
     }
     
     @Override
+    public boolean  bringPointIntoView(int offset) {
+        Layout layout = getLayout();
+        ScrollView parent = (ScrollView) getParent();
+        if (parent != null && layout != null)
+        {
+            int line = layout.getLineForOffset(offset);
+            Rect r = new Rect();
+            layout.getLineBounds(line, r);
+            r.left = (int) layout.getPrimaryHorizontal(offset);
+            
+            if (r.top < parent.getScrollY())
+                parent.smoothScrollTo(r.left, r.top);
+            else if (r.bottom > (parent.getScrollY() + parent.getHeight()))
+                parent.smoothScrollTo(r.left, r.bottom - parent.getHeight());
+        }
+        
+        return super.bringPointIntoView(offset);
+    }
+    
+    @Override
     protected void onSelectionChanged(int selStart, int selEnd)
     {
         if (listeners != null)
         {
             for (SelectionChangedListener l : listeners)
                 l.onSelectionChanged(selStart, selEnd);        
-        }
-        
-        ScrollView parent = (ScrollView) getParent();
-        if (parent != null)
-        {
-            Layout layout = getLayout();
-            if (layout != null)
-            {
-                // TODO Maybe fix bringPointIntoView instead
-                int line = layout.getLineForOffset(selStart);
-                Rect r = new Rect();
-                layout.getLineBounds(line, r);
-                r.left = (int) layout.getPrimaryHorizontal(selStart);
-                if (r.top < parent.getScrollY())
-                    parent.smoothScrollTo(r.left, r.top);
-                else if (r.bottom > (parent.getScrollY() + parent.getHeight()))
-                    parent.smoothScrollTo(r.left, r.bottom - parent.getHeight());
-            }
         }
     }
     
