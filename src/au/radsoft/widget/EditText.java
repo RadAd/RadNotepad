@@ -58,13 +58,7 @@ public class EditText extends android.widget.EditText
         e.replace(st, en, s);
         final int nen = st + s.length();
         final int nst = reselect ? st : nen;
-        post(new Runnable() {
-                    @Override
-                    public void run()
-                {
-                    setSelection(nst, nen);
-                }
-            });
+        setSelection(nst, nen);
     }
     
     public void setTabStops(int tabChars)

@@ -178,8 +178,12 @@ public class TextSearchView extends SearchView implements SearchView.OnQueryText
     @Override // SearchView.OnQueryTextListener
     public boolean onQueryTextChange(String newText)
     {
-        //Log.i(_tag, String.format("onQueryTextChange: '%s'", newText));
-        findHighlight(newText, mTextView.getSelectionStart(), true);
+        // For some reason this is been called when iconified as part of an onRestoreInstanceState
+        if (!isIconified())
+        {
+            //Log.i(_tag, String.format("onQueryTextChange: '%s'", newText));
+            findHighlight(newText, mTextView.getSelectionStart(), true);
+        }
         return true;
     }
     
