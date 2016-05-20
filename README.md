@@ -3,6 +3,8 @@ RadNotepad
 
 A simple text editor for Android
 
+![tag](https://img.shields.io/github/tag/RadAd/RadNotepad.svg)
+
 Features
 --------
 - Edit any file
